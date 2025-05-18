@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// === Game Parameters ===
+const int GRID_WIDTH = 16;
+const int GRID_HEIGHT = 8;
+const int MAP_SIZE = GRID_WIDTH * GRID_HEIGHT;
+
+// Enemies
+const int NUM_CIRCLES = 3;
+const int NUM_SQUARES = 3;
+
+// Speeds
+const int CIRCLE_SPEED = 1;
+const int SQUARE_SPEED = 3;
+
+// Health
+const int CIRCLE_HEALTH = 10;
+const int SQUARE_HEALTH = 20;
+
+// Damage
+const int CIRCLE_DAMAGE = 2;
+const int SQUARE_DAMAGE = 4;
+
+// Spawning
+const int CIRCLE_SPAWN_INTERVAL = 2;
+const int SQUARE_SPAWN_INTERVAL = 3;
+
+// Main Tower
+int mainTowerHP = 10;
+
+// Enemy state arrays
+int circle_health[NUM_CIRCLES];
+bool circle_alive[NUM_CIRCLES];
+
+int square_health[NUM_SQUARES];
+bool square_alive[NUM_SQUARES];
+
+// Clock for simulation
+clock globalClock;
+
+
+// Cell types
+const int PATH = 1;    // Red cells (enemy path)
+const int TURRET_SPOT = 2; // Green cells (turret placement)
+const int MAIN_TOWER = 3;  // Blue cell (main tower)
+
+// Main Tower position
+const int MAIN_X = 7;
+const int MAIN_Y = 4;
+
+// Helper to flatten (x,y)
+int index(int x, int y) {
+    return x * GRID_HEIGHT + y;
+}
+
+
+ 
+
+
+// ===== Set Main Tower position =====
+// Map initialization
+//map[index(0,0)] = PATH;
+//map[index(1,0)] = PATH;
+//map[index(2,0)] = PATH;
+//map[index(3,0)] = PATH;
+//map[index(4,0)] = PATH;
+//map[index(5,0)] = PATH;
+//map[index(6,0)] = PATH;
+//map[index(7,0)] = PATH;
+
+//map[index(7,1)] = PATH;
+//map[index(7,2)] = PATH;
+//map[index(7,3)] = PATH;
+//map[index(7,4)] = MAIN_TOWER; // Already set earlier
+
+// Turret spots
+//map[index(5,5)] = TURRET_SPOT;
+//map[index(8,2)] = TURRET_SPOT;
+//map[index(8,6)] = TURRET_SPOT;
+//map[index(14,2)] = TURRET_SPOT;
+//map[index(14,6)] = TURRET_SPOT;
+//map[index(2,3)] = TURRET_SPOT;
+//map[index(11,5)] = TURRET_SPOT;
+</declaration>
+	<template>
+		<name>EnemySquare</name>
+		<parameter>int id</parameter>
+		<declaration>clock t;</declaration>
+		<location id="id0" x="-1394" y="-1147">
+			<name x="-1404" y="-1181">Start</name>
+		</location>
+		<location id="id1" x="-1317" y="-867">
+			<name x="-1327" y="-901">Move</name>
+		</location>
+		<location id="id2" x="-935" y="-858">
+			<name x="-945" y="-892">Attack</name>
+		</location>
+		<location id="id3" x="-799" y="-1173">
+			<name x="-809" y="-1207">Leave</name>
+		</location>
+		<init ref="id0"/>
+		<transition id="id4">
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1369" y="-807">t &gt;= SQUARE_SPEED</label>
+			<label kind="assignment" x="-1342" y="-833">t := 0</label>
+			<nail x="-1360" y="-833"/>
+			<nail x="-1292" y="-833"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="-800" y="-1053">mainTowerHP := mainTowerHP - SQUARE_DAMAGE, 
+square_alive[id] := false</label>
+		</transition>
+		<transition id="id6">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-1190" y="-892">t &gt;= SQUARE_SPEED</label>
+			<label kind="assignment" x="-1165" y="-858">t := 0</label>
+		</transition>
+		<transition id="id7">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-1343" y="-1028">t &gt;= SQUARE_SPAWN_INTERVAL * id</label>
+			<label kind="assignment" x="-1351" y="-1096">t := 0, 
+square_alive[id] := true, 
+square_health[id] := SQUARE_HEALTH</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">EnemyCircle</name>
+		<parameter>int id</parameter>
+		<declaration>// Place local declarations here.
+clock t;</declaration>
+		<location id="id8" x="-195" y="-212">
+			<name x="-205" y="-246">Start</name>
+		</location>
+		<location id="id9" x="-170" y="25">
+			<name x="-180" y="-9">Move</name>
+		</location>
+		<location id="id10" x="229" y="34">
+			<name x="219" y="0">Attack</name>
+		</location>
+		<location id="id11" x="212" y="-187">
+			<name x="202" y="-221">Leave</name>
+		</location>
+		<init ref="id8"/>
+		<transition id="id12">
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="assignment" x="238" y="-93">mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
+circle_alive[id] := false</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id9"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-255" y="85">t &gt;= CIRCLE_SPEED</label>
+			<label kind="assignment" x="-211" y="63">t := 0</label>
+			<nail x="-229" y="59"/>
+			<nail x="-119" y="68"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-102" y="34">t &gt;= CIRCLE_SPEED</label>
+			<label kind="assignment" x="-68" y="0">t := 0</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-170" y="-85">t &gt;= CIRCLE_SPAWN_INTERVAL * id</label>
+			<label kind="assignment" x="-170" y="-170">t := 0, 
+circle_alive[id] := true, 
+circle_health[id] := CIRCLE_HEALTH</label>
+			<nail x="-178" y="-59"/>
+		</transition>
+	</template>
+	<template>
+		<name>Map</name>
+		<declaration>
+int j;
+void __ON_CONSTRUCT__(){
+    int map[5] = {0,1,1,1};
+}</declaration>
+		<location id="id16" x="0" y="0">
+			<urgent/>
+		</location>
+		<init ref="id16"/>
+	</template>
+	<system>// Place template instantiations here.
+C0 = EnemyCircle(0);
+C1 = EnemyCircle(1);
+C2 = EnemyCircle(2);
+S0 = EnemySquare(0);
+S1 = EnemySquare(1);
+S2 = EnemySquare(2);
+M = Map();
+// List one or more processes to be composed into a system.
+system C0,C1,C2,S0,S1,S2, M;</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+			<result outcome="failure" type="quality" timestamp="2025-04-26 16:53:53 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; C0.Leave and C1.Leave and C2.Leave and
+    S0.Leave and S1.Leave and S2.Leave
+</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-04-26 17:09:46 +0200">
+			</result>
+		</query>
+	</queries>
+</nta>
