@@ -54,9 +54,24 @@ int index(int x, int y) {
     return x * GRID_HEIGHT + y;
 }
 
+const int NUM_TURRETS = 7;
+const int NUM_ENEMIES = 6;
+typedef int[0, NUM_TURRETS-1] id_t; //indexes of turrets from 1 to 7
+typedef int[0, NUM_ENEMIES-1] id_en;
+chan movement[id_t];
+chan shoot[id_en];
+int ranges[id_t] = {5,2,2,2,2,2,2};
+int rofs[id_t] = {20,2,2,2,2,2,2};
+int atks[id_t] = {8,2,2,2,2,2,2};
+int locations[id_t][2] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
 
- 
+bool find_target(){
+return false;
+}
 
+int acquire_target(){
+return 1;
+}
 
 // ===== Set Main Tower position =====
 // Map initialization
@@ -189,7 +204,56 @@ void __ON_CONSTRUCT__(){
 		</location>
 		<init ref="id16"/>
 	</template>
-	<system>// Place template instantiations here.
+	<template>
+		<name x="5" y="5">Turret</name>
+		<parameter>int &amp;range, int &amp;rof, int &amp;atk, int &amp;coord[2], int id</parameter>
+		<declaration>int[1, NUM_ENEMIES] target_id;
+int local_value;
+bool present;
+clock turret_clock;</declaration>
+		<location id="id17" x="-3646" y="-1190">
+			<name x="-3663" y="-1224">idle</name>
+			<urgent/>
+		</location>
+		<location id="id18" x="-3298" y="-1190">
+			<name x="-3340" y="-1224">ready_to_fire</name>
+			<urgent/>
+		</location>
+		<location id="id19" x="-2949" y="-1190">
+			<name x="-2975" y="-1224">fire</name>
+			<label kind="invariant" x="-3009" y="-1181">turret_clock&gt;rof</label>
+		</location>
+		<init ref="id17"/>
+		<transition id="id20">
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-3196" y="-1351">turret_clock&lt;=rof</label>
+			<label kind="synchronisation" x="-3196" y="-1334">shoot[target_id]!</label>
+			<label kind="assignment" x="-3221" y="-1317">present = find_target()</label>
+			<nail x="-2949" y="-1334"/>
+			<nail x="-3298" y="-1334"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-3519" y="-1105">!present</label>
+			<nail x="-3298" y="-1088"/>
+			<nail x="-3646" y="-1088"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id18"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-3187" y="-1207">present</label>
+			<label kind="assignment" x="-3247" y="-1190">target_id = acquire_target()</label>
+		</transition>
+		<transition id="id23">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-3510" y="-1207">movement[id]?</label>
+			<label kind="assignment" x="-3544" y="-1190">present = find_target()</label>
+		</transition>
+	</template>
+	<system>
 C0 = EnemyCircle(0);
 C1 = EnemyCircle(1);
 C2 = EnemyCircle(2);
@@ -197,8 +261,9 @@ S0 = EnemySquare(0);
 S1 = EnemySquare(1);
 S2 = EnemySquare(2);
 M = Map();
-// List one or more processes to be composed into a system.
-system C0,C1,C2,S0,S1,S2, M;</system>
+T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id], id);
+
+system C0,C1,C2,S0,S1,S2, M, T;</system>
 	<queries>
 		<query>
 			<formula>A[] not deadlock</formula>
