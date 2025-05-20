@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// === Game Parameters ===
+const int WIDTH = 16;
+const int HEIGHT = 8;
+const int MAP_SIZE = WIDTH * HEIGHT;
+
+// Enemies
+const int NUM_CIRCLES = 3;
+const int NUM_SQUARES = 3;
+
+// Speeds
+const int CIRCLE_SPEED = 1;
+const int SQUARE_SPEED = 3;
+
+// Health
+const int CIRCLE_HEALTH = 10;
+const int SQUARE_HEALTH = 20;
+
+// Damage
+const int CIRCLE_DAMAGE = 2;
+const int SQUARE_DAMAGE = 4;
+
+// Spawning
+const int CIRCLE_SPAWN_INTERVAL = 2;
+const int SQUARE_SPAWN_INTERVAL = 3;
+
+
+// Enemy position variables
+int START_X = 0;
+int START_Y = 4;
+
+// Main Tower
+int mainTowerHP = 10;
+
+// Enemy state arrays
+int circle_health[NUM_CIRCLES];
+bool circle_alive[NUM_CIRCLES];
+
+int square_health[NUM_SQUARES];
+bool square_alive[NUM_SQUARES];
+
+// Clock for simulation
+clock globalClock;
+
+
+// Cell types
+const int WALL = 0;
+const int PATH = 1;
+const int TURRET = 2;
+const int ENTRY = 3;
+const int MAIN = 4;
+
+// Main Tower position
+const int MAIN_X = 15;
+const int MAIN_Y = 4;
+
+// Bifurcation points
+const int BIFURCATION1_X = 7;
+const int BIFURCATION1_Y = 4;
+const int BIFURCATION2_X = 10;
+const int BIFURCATION2_Y = 7;
+
+int map[HEIGHT][WIDTH] = {
+//x= 0     1     2       3     4     5       6     7       8       9     10    11      12    13    14      15
+    {PATH, 0,    0,      0,    0,    0,      0,    0,      0,      0,    0,    0,      0,    0,    0,      0},    // y = 0
+    {PATH, 0,    0,      0,    0,    0,      0,    PATH,   PATH,   PATH, PATH, PATH,   PATH, PATH, PATH,   PATH}, // y = 1
+    {PATH, 0,    0,      0,    0,    0,      0,    PATH,   TURRET, 0,    0,    0,      0,    0,    TURRET, PATH}, // y = 2
+    {PATH, 0,    TURRET, 0,    0,    0,      0,    PATH,   0,      0,    0,    0,      0,    0,    0,      PATH}, // y = 3
+    {PATH, PATH, PATH,   PATH, PATH, PATH,   PATH, PATH,   0,      0,    PATH, PATH,   PATH, PATH, PATH,   PATH}, // y = 4
+    {0,    0,    0,      0,    0,    TURRET, 0,    PATH,   0,      0,    PATH, TURRET, 0,    0,    0,      PATH}, // y = 5
+    {0,    0,    0,      0,    0,    0,      0,    PATH,   TURRET, 0,    PATH, 0,      0,    0,    TURRET, PATH}, // y = 6
+    {0,    0,    0,      0,    0,    0,      0,    PATH,   PATH,   PATH, PATH, PATH,   PATH, PATH, PATH,   PATH}  // y = 7
+};
+
+
+
+
+</declaration>
+	<template>
+		<name>EnemySquare</name>
+		<parameter>int id</parameter>
+		<declaration>clock t;
+int x = 0;
+int y = 4;
+int prev_x = -1;
+int prev_y = -1;
+
+int next[2][2] = {
+    {-1, -1},
+    {-1, -1}
+}; // Array of possible next [x,y] positions
+
+
+
+// Returns possible next positions from (x,y)
+void getNextPositions(int x, int y, int prev_x, int prev_y) {
+    
+    next[0][0] = -1;
+    next[0][1] = -1;
+    next[1][0] = -1;
+    next[1][1] = -1;
+     
+    // Main Tower reached - no further movement
+    if(x == MAIN_X &amp;&amp; y == MAIN_Y) {
+        return;
+    }
+    
+    // Bifurcation point 1
+    if(x == BIFURCATION1_X &amp;&amp; y == BIFURCATION1_Y) {
+        // Move up
+        next[0][0] = x;
+        next[0][1] = y+1;
+         // Move down
+        next[1][0] = x;
+        next[1][1] = y-1;
+        return;
+    }
+    
+    // Bifurcation point 2
+    if(x == BIFURCATION2_X &amp;&amp; y == BIFURCATION2_Y) {
+        // Move down
+        next[0][0] = x;
+        next[0][1] = y-1;
+        // Move right
+        next[1][0] = x+1;
+        next[1][1] = y;
+        return;
+    }
+    
+    // Default forward movement
+    if (x+1 != prev_x || y != prev_y){
+        if (x &lt; WIDTH - 1 &amp;&amp; map[y][x + 1] == PATH) {
+            next[0][0] = x + 1;
+            next[0][1] = y;
+            return;
+        }
+    }
+    // Vertical movement
+    if (y &lt; HEIGHT - 1 &amp;&amp; map[y + 1][x] == PATH &amp;&amp; !(x == prev_x &amp;&amp; y+1 == prev_y)) {
+        next[0][0] = x;
+        next[0][1] = y + 1;
+        return;
+    }
+    if (y &gt; 0 &amp;&amp; map[y - 1][x] == PATH &amp;&amp; !(x == prev_x &amp;&amp; y-1 == prev_y)) {
+        next[0][0] = x;
+        next[0][1] = y - 1;
+        return;
+    }
+    // Edge case handling
+    return ;
+}</declaration>
+		<location id="id0" x="-1190" y="-1215">
+			<name x="-1200" y="-1249">Start</name>
+		</location>
+		<location id="id1" x="-875" y="-909">
+			<name x="-885" y="-943">Move</name>
+		</location>
+		<location id="id2" x="-340" y="-909">
+			<name x="-350" y="-943">Attack</name>
+		</location>
+		<location id="id3" x="-612" y="-680">
+			<name x="-622" y="-714">Leave</name>
+		</location>
+		<location id="id4" x="-1190" y="-952">
+			<name x="-1292" y="-969">DecideNext</name>
+			<label kind="testcodeEnter">getNextPositions(x, y);</label>
+		</location>
+		<init ref="id0"/>
+		<transition id="id5">
+			<source ref="id1"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-935" y="-790">square_health[id] &lt;= 0</label>
+			<label kind="assignment" x="-943" y="-765">square_alive[id] := false</label>
+		</transition>
+		<transition id="id6">
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-1139" y="-1020">square_alive[id] == true &amp;&amp;
+!(x == MAIN_X &amp;&amp; y == MAIN_Y)</label>
+			<label kind="assignment" x="-1130" y="-977">getNextPositions(x, y, prev_x, prev_y)</label>
+			<nail x="-1096" y="-943"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="select" x="-1190" y="-884">i : int[0,1]</label>
+			<label kind="guard" x="-1198" y="-858">t &gt;= SQUARE_SPEED &amp;&amp;
+next[i][0] != -1 &amp;&amp; 
+next[i][1] != -1</label>
+			<label kind="assignment" x="-1181" y="-799">prev_x = x, 
+prev_y = y,
+x = next[i][0], 
+y = next[i][1],
+t := 0</label>
+			<nail x="-1088" y="-892"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-1521" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * id</label>
+			<label kind="assignment" x="-1521" y="-1139">t := 0, 
+square_alive[id] := true, 
+square_health[id] := SQUARE_HEALTH,
+getNextPositions(x, y, prev_x, prev_y)</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-416" y="-824">t &gt;= SQUARE_SPEED</label>
+			<label kind="assignment" x="-467" y="-799">square_alive[id] := false,
+t := 0,
+mainTowerHP := mainTowerHP - SQUARE_DAMAGE</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-756" y="-994">t &gt;= SQUARE_SPEED &amp;&amp;
+x == MAIN_X &amp;&amp; y == MAIN_Y &amp;&amp;
+mainTowerHP &gt;= mainTowerHP - SQUARE_DAMAGE</label>
+			<label kind="assignment" x="-748" y="-935">t := 0</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">EnemyCircle</name>
+		<parameter>int id</parameter>
+		<declaration>// Place local declarations here.
+clock t;
+int x = 0;
+int y = 4;
+int prev_x = -1;
+int prev_y = -1;
+
+int next[2][2] = {
+    {-1, -1},
+    {-1, -1}
+}; // Array of possible next [x,y] positions
+
+
+
+// Returns possible next positions from (x,y)
+void getNextPositions(int x, int y, int prev_x, int prev_y) {
+    
+    next[0][0] = -1;
+    next[0][1] = -1;
+    next[1][0] = -1;
+    next[1][1] = -1;
+     
+    // Main Tower reached - no further movement
+    if(x == MAIN_X &amp;&amp; y == MAIN_Y) {
+        return;
+    }
+    
+    // Bifurcation point 1
+    if(x == BIFURCATION1_X &amp;&amp; y == BIFURCATION1_Y) {
+        // Move up
+        next[0][0] = x;
+        next[0][1] = y+1;
+         // Move down
+        next[1][0] = x;
+        next[1][1] = y-1;
+        return;
+    }
+    
+    // Bifurcation point 2
+    if(x == BIFURCATION2_X &amp;&amp; y == BIFURCATION2_Y) {
+        // Move down
+        next[0][0] = x;
+        next[0][1] = y-1;
+        // Move right
+        next[1][0] = x+1;
+        next[1][1] = y;
+        return;
+    }
+    
+    // Default forward movement
+    if (x+1 != prev_x || y != prev_y){
+        if (x &lt; WIDTH - 1 &amp;&amp; map[y][x + 1] == PATH) {
+            next[0][0] = x + 1;
+            next[0][1] = y;
+            return;
+        }
+    }
+    // Vertical movement
+    if (y &lt; HEIGHT - 1 &amp;&amp; map[y + 1][x] == PATH &amp;&amp; !(x == prev_x &amp;&amp; y+1 == prev_y)) {
+        next[0][0] = x;
+        next[0][1] = y + 1;
+        return;
+    }
+    if (y &gt; 0 &amp;&amp; map[y - 1][x] == PATH &amp;&amp; !(x == prev_x &amp;&amp; y-1 == prev_y)) {
+        next[0][0] = x;
+        next[0][1] = y - 1;
+        return;
+    }
+    // Edge case handling
+    return ;
+}</declaration>
+		<location id="id11" x="-382" y="-263">
+			<name x="-392" y="-297">Start</name>
+		</location>
+		<location id="id12" x="8" y="8">
+			<name x="-2" y="-26">Move</name>
+		</location>
+		<location id="id13" x="476" y="0">
+			<name x="466" y="-34">Attack</name>
+		</location>
+		<location id="id14" x="195" y="212">
+			<name x="185" y="178">Leave</name>
+		</location>
+		<location id="id15" x="-382" y="-42">
+			<name x="-492" y="-59">DecideNext</name>
+		</location>
+		<init ref="id11"/>
+		<transition id="id16">
+			<source ref="id12"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-119" y="85">circle_health[id] &lt;= 0</label>
+			<label kind="assignment" x="-119" y="110">circle_alive[id] := false</label>
+		</transition>
+		<transition id="id17">
+			<source ref="id12"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-323" y="-119">circle_alive[id] == true &amp;&amp;
+!(x == MAIN_X &amp;&amp; y == MAIN_Y)</label>
+			<label kind="assignment" x="-323" y="-76">getNextPositions(x, y, prev_x, prev_y)</label>
+			<nail x="-289" y="-34"/>
+		</transition>
+		<transition id="id18">
+			<source ref="id15"/>
+			<target ref="id12"/>
+			<label kind="select" x="-374" y="34">i : int[0,1]</label>
+			<label kind="guard" x="-374" y="59">t &gt;= CIRCLE_SPEED &amp;&amp;
+next[i][0] != -1 &amp;&amp; 
+next[i][1] != -1</label>
+			<label kind="assignment" x="-374" y="119">prev_x = x, 
+prev_y = y,
+x = next[i][0], 
+y = next[i][1],
+t := 0</label>
+			<nail x="-323" y="25"/>
+		</transition>
+		<transition id="id19">
+			<source ref="id11"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-731" y="-221">t &gt;= CIRCLE_SPAWN_INTERVAL * id</label>
+			<label kind="assignment" x="-731" y="-195">t := 0, 
+circle_alive[id] := true, 
+circle_health[id] := CIRCLE_HEALTH,
+getNextPositions(x, y, prev_x, prev_y)</label>
+		</transition>
+		<transition id="id20">
+			<source ref="id13"/>
+			<target ref="id14"/>
+			<label kind="guard" x="348" y="102">t &gt;= CIRCLE_SPEED</label>
+			<label kind="assignment" x="331" y="119">mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
+circle_alive[id] := false,
+t := 0</label>
+		</transition>
+		<transition id="id21">
+			<source ref="id12"/>
+			<target ref="id13"/>
+			<label kind="guard" x="68" y="-85">t &gt;= CIRCLE_SPEED &amp;&amp;
+x == MAIN_X &amp;&amp; y == MAIN_Y &amp;&amp;
+mainTowerHP &gt;= mainTowerHP - CIRCLE_DAMAGE</label>
+			<label kind="assignment" x="119" y="-25">t := 0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+C0 = EnemyCircle(0);
+C1 = EnemyCircle(1);
+C2 = EnemyCircle(2);
+S0 = EnemySquare(0);
+S1 = EnemySquare(1);
+S2 = EnemySquare(2);
+// List one or more processes to be composed into a system.
+system S0, C0;</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment/>
+			<result outcome="failure" type="quality" timestamp="2025-04-26 16:53:53 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; C0.Leave and C1.Leave and C2.Leave and
+    S0.Leave and S1.Leave and S2.Leave
+</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-04-26 17:09:46 +0200">
+			</result>
+		</query>
+	</queries>
+</nta>
