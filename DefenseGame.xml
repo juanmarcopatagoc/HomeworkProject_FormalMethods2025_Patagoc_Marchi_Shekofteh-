@@ -6,26 +6,64 @@ const int WIDTH = 16;
 const int HEIGHT = 8;
 const int MAP_SIZE = WIDTH * HEIGHT;
 
+// === Turrets Parameters ===
+
+//Turrets
+const int NUM_TURRETS = 7;
+
+//Turrets Damage
+const int SNIPER_ATK = 20;
+const int CANNON_ATK = 5;
+const int BASIC_ATK = 2;
+
+//Turrets Range
+const int SNIPER_RANGE = 4;
+const int CANNON_RANGE = 1;
+const int BASIC_RANGE = 2;
+
+//Turrets Rate of Fire
+const int SNIPER_ROF = 20;
+const int CANNON_ROF = 7;
+const int BASIC_ROF = 2;
+
+//Turrets state arrays;
+typedef int[0, NUM_TURRETS-1] id_t;
+chan shoot[id_t];
+int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE};
+int rofs[id_t] = {BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF};
+int atks[id_t] = {BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK};
+int locations[id_t][2] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
+
+//Turrets functions
+bool find_target(){
+return false;
+}
+
+int acquire_target(){
+return 1;
+}
+
+// === Enemies Parameters ===
+
 // Enemies
 const int NUM_CIRCLES = 3;
 const int NUM_SQUARES = 3;
 
-// Speeds
+//Enemies Speeds
 const int CIRCLE_SPEED = 1;
 const int SQUARE_SPEED = 3;
 
-// Health
+//Enemies Health
 const int CIRCLE_HEALTH = 10;
 const int SQUARE_HEALTH = 20;
 
-// Damage
+//Enenmies Damage
 const int CIRCLE_DAMAGE = 2;
 const int SQUARE_DAMAGE = 4;
 
-// Spawning
+//Enenmies Spawning
 const int CIRCLE_SPAWN_INTERVAL = 2;
 const int SQUARE_SPAWN_INTERVAL = 3;
-
 
 // Enemy position variables
 int START_X = 0;
@@ -40,6 +78,8 @@ bool circle_alive[NUM_CIRCLES];
 
 int square_health[NUM_SQUARES];
 bool square_alive[NUM_SQUARES];
+
+chan movement[id_t];
 
 // Clock for simulation
 clock globalClock;
@@ -366,6 +406,55 @@ mainTowerHP &gt;= mainTowerHP - CIRCLE_DAMAGE</label>
 			<label kind="assignment" x="119" y="-25">t := 0</label>
 		</transition>
 	</template>
+	<template>
+		<name x="5" y="5">Turret</name>
+		<parameter>int &amp;range, int &amp;rof, int &amp;atk, int &amp;coord[2], int id</parameter>
+		<declaration>int[0, NUM_CIRCLES+NUM_SQUARES-1] target_id;
+int local_value;
+bool present;
+clock turret_clock;</declaration>
+		<location id="id22" x="-3646" y="-1190">
+			<name x="-3663" y="-1224">idle</name>
+			<urgent/>
+		</location>
+		<location id="id23" x="-3298" y="-1190">
+			<name x="-3340" y="-1224">ready_to_fire</name>
+			<urgent/>
+		</location>
+		<location id="id24" x="-2949" y="-1190">
+			<name x="-2975" y="-1224">fire</name>
+			<label kind="invariant" x="-3009" y="-1181">turret_clock&gt;rof</label>
+		</location>
+		<init ref="id22"/>
+		<transition id="id25">
+			<source ref="id24"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-3196" y="-1351">turret_clock&lt;=rof</label>
+			<label kind="synchronisation" x="-3196" y="-1334">shoot[target_id]!</label>
+			<label kind="assignment" x="-3221" y="-1317">present = find_target()</label>
+			<nail x="-2949" y="-1334"/>
+			<nail x="-3298" y="-1334"/>
+		</transition>
+		<transition id="id26">
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-3519" y="-1105">!present</label>
+			<nail x="-3298" y="-1088"/>
+			<nail x="-3646" y="-1088"/>
+		</transition>
+		<transition id="id27">
+			<source ref="id23"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-3187" y="-1207">present</label>
+			<label kind="assignment" x="-3247" y="-1190">target_id = acquire_target()</label>
+		</transition>
+		<transition id="id28">
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-3510" y="-1207">movement[id]?</label>
+			<label kind="assignment" x="-3544" y="-1190">present = find_target()</label>
+		</transition>
+	</template>
 	<system>// Place template instantiations here.
 C0 = EnemyCircle(0);
 C1 = EnemyCircle(1);
@@ -373,8 +462,9 @@ C2 = EnemyCircle(2);
 S0 = EnemySquare(0);
 S1 = EnemySquare(1);
 S2 = EnemySquare(2);
+T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id], id);
 // List one or more processes to be composed into a system.
-system S0, C0;</system>
+system S0, C0, T;</system>
 	<queries>
 		<query>
 			<formula>A[] not deadlock</formula>
