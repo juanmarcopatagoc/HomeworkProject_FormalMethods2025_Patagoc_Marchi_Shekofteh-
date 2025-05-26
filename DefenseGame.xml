@@ -35,15 +35,6 @@ int rofs[id_t] = {BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BA
 int atks[id_t] = {BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK};
 int locations[id_t][2] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
 
-//Turrets functions
-bool find_target(){
-return false;
-}
-
-int acquire_target(){
-return 1;
-}
-
 // === Enemies Parameters ===
 
 // Enemies
@@ -83,9 +74,12 @@ bool circle_alive[NUM_CIRCLES];
 int square_health[NUM_SQUARES];
 bool square_alive[NUM_SQUARES];
 
-
+//to save when the enemy instance has started
+int activation_order[NUM_SQUARES+NUM_CIRCLES];
+int activation_counter = 0;
 // Clock for simulation
 clock globalClock;
+
 
 
 // Cell types
@@ -119,6 +113,26 @@ int map[HEIGHT][WIDTH] = {
     {0,    0,    0,      0,    0,    0,      0,    PATH,   PATH,   PATH, PATH, PATH,   PATH, PATH, PATH,   PATH}  // y = 7
 };
 
+int id_inMap[HEIGHT][WIDTH] = {
+//x= 0     1     2       3     4     5       6     7       8       9     10    11      12    13    14      15
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 0
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 1
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 2
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 3
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 4
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 5
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 6
+    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}  // y = 7
+};
+
+
+//appling damage to the enemy target function
+void apply_damage(int target_id, int dmg) {
+    if (target_id &lt; NUM_SQUARES)
+        square_health[target_id] -= dmg;
+    else
+        circle_health[target_id - NUM_SQUARES] -= dmg;
+}
 
 
 
@@ -274,6 +288,8 @@ next[0][1] != -1</label>
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -311,6 +327,8 @@ next[i][1] != -1</label>
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -319,6 +337,8 @@ t := 0</label>
 			<target ref="id9"/>
 			<label kind="guard" x="-1844" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1844" y="-1139">t := 0, 
+activation_order[id] := activation_counter,
+activation_counter++,
 square_alive[id] := true, 
 square_health[id] := SQUARE_HEALTH,
 getNextPositions(x, y, prev_x, prev_y)</label>
@@ -339,6 +359,8 @@ t := 0</label>
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id,
 updatePositions(),
 mainTowerHP = mainTowerHP-SQUARE_DAMAGE,
 t := 0</label>
@@ -470,6 +492,8 @@ next[0][1] != -1</label>
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -507,6 +531,8 @@ next[i][1] != -1</label>
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -515,6 +541,8 @@ t := 0</label>
 			<target ref="id27"/>
 			<label kind="guard" x="-1190" y="-324">t &gt;= CIRCLE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1190" y="-298">t := 0, 
+activation_order[id + NUM_SQUARES] := activation_counter,
+activation_counter++,
 circle_alive[id] := true, 
 circle_health[id] := CIRCLE_HEALTH,
 getNextPositions(x, y, prev_x, prev_y)</label>
@@ -531,10 +559,12 @@ t := 0</label>
 			<target ref="id24"/>
 			<label kind="guard" x="221" y="-391">t &gt;= CIRCLE_SPEED</label>
 			<label kind="synchronisation" x="127" y="-357">attack!</label>
-			<label kind="assignment" x="221" y="-373">prev_x = x,
+			<label kind="assignment" x="221" y="-374">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
+id_inMap[prev_x][prev_y] := -1,
+id_inMap[x][y] := id+NUM_SQUARES,
 updatePositions(),
 mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
 t := 0</label>
@@ -543,49 +573,163 @@ t := 0</label>
 	<template>
 		<name x="5" y="5">Turret</name>
 		<parameter>int &amp;range, int &amp;rof, int &amp;atk, int &amp;coord[2], int id</parameter>
-		<declaration>int[0, NUM_CIRCLES+NUM_SQUARES-1] target_id;
+		<declaration>int[0, NUM_SQUARES+NUM_CIRCLES-1] target_id;
+int[0, NUM_SQUARES+NUM_CIRCLES-1] output_id;
 int local_value;
 bool present;
-clock turret_clock;</declaration>
+clock turret_clock;
+
+//local functions
+bool find_target(int range, int rof, int x, int y){
+    bool found= false;
+    int r;
+    int i;
+    int j;
+    int current_id = -1;
+    int current_time;
+    int best_id = -1;
+    int best_time;
+
+    r = 1;
+
+    while (r &lt;= range &amp;&amp; !found) {
+        // Left and right columns
+        for (j = y-r; j &lt;= y+r; j++){
+            if(x-r &gt;= 0 &amp;&amp; j&gt;=0 &amp;&amp; j &lt; WIDTH){
+                    i = x-r;
+                    //if the coordinate is a path
+                    if(map[i][j] == PATH){
+                        current_id = id_inMap[i][j];
+                        //if there is an enemy --&gt; different from -1
+                        //and if the enemy is alive (health of the enemy is greater than 0)
+                        if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
+                            current_time = activation_order[current_id];
+                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
+                                found = true;
+                                best_id = current_id;
+                                best_time = current_time;
+                        }
+                    }
+                    
+                }                        
+            }
+             
+            if(x+r &lt; WIDTH &amp;&amp; j&gt;=0 &amp;&amp; j &lt; HEIGHT){
+                i = x+r;
+                //if the coordinate is a path
+                if(map[i][j] == PATH){
+                    current_id = id_inMap[i][j];
+                    //if there is an enemy --&gt; different from -1
+                    //and if the enemy is alive (health of the enemy is greater than 0)
+                    if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
+                        current_time = activation_order[current_id];
+                        if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
+                            found = true;
+                            best_id = current_id;
+                            best_time = current_time;
+                        }
+                    }
+                    
+                } 
+            }
+                
+        }
+
+    // Top and bottom rows (excluding corners)
+    for(i = x-r+1; i &lt;= x+r-1; i++){
+			if(i &gt;= 0 &amp;&amp; i &lt; WIDTH){
+                //top
+				if( y-r &gt;=0){
+                    j = y-r;
+                    //if the coordinate is a path
+                    if(map[i][j] == PATH){
+                        current_id = id_inMap[i][j];
+                       //if there is an enemy --&gt; different from -1
+                       //and if the enemy is alive (health of the enemy is greater than 0)
+                       if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
+                            current_time = activation_order[current_id];
+                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
+                                found = true;
+                                best_id = current_id;
+                                best_time = current_time;
+                            }
+                        }
+                    
+                    }   
+                }
+                //bottom
+				if(y+r &lt; HEIGHT){
+                    j = y+r;
+                    //if the coordinate is a path
+                    if(map[i][j] == PATH){
+                        current_id = id_inMap[i][j];
+                        //if there is an enemy --&gt; different from -1
+                        //and if the enemy is alive (health of the enemy is greater than 0)
+                        if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
+                            current_time = activation_order[current_id];
+                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
+                                found = true;
+                                best_id = current_id;
+                                best_time = current_time;
+                            }
+                        }                   
+                    }
+                }					
+			}
+		}
+
+        if (found) {
+            output_id = best_id;
+        } else {
+            r++;
+        }
+    }
+    return found;
+}
+
+int acquire_target(){
+    return output_id;
+}</declaration>
 		<location id="id40" x="-3646" y="-1190">
 			<name x="-3663" y="-1224">idle</name>
 			<urgent/>
 		</location>
-		<location id="id41" x="-3298" y="-1190">
-			<name x="-3340" y="-1224">ready_to_fire</name>
+		<location id="id41" x="-3060" y="-1190">
+			<name x="-3102" y="-1224">ready_to_fire</name>
 			<urgent/>
 		</location>
-		<location id="id42" x="-2949" y="-1190">
-			<name x="-2975" y="-1224">fire</name>
-			<label kind="invariant" x="-3009" y="-1181">turret_clock&gt;rof</label>
+		<location id="id42" x="-2507" y="-1190">
+			<name x="-2533" y="-1224">fire</name>
+			<label kind="invariant" x="-2567" y="-1181">turret_clock&gt;rof</label>
 		</location>
 		<init ref="id40"/>
 		<transition id="id43">
 			<source ref="id42"/>
 			<target ref="id41"/>
-			<label kind="guard" x="-3196" y="-1351">turret_clock&lt;=rof</label>
-			<label kind="synchronisation" x="-3196" y="-1334">shoot[target_id]!</label>
-			<label kind="assignment" x="-3221" y="-1317">present = find_target()</label>
-			<nail x="-2949" y="-1334"/>
-			<nail x="-3298" y="-1334"/>
+			<label kind="guard" x="-2822" y="-1377">turret_clock&lt;=rof</label>
+			<label kind="synchronisation" x="-2822" y="-1343">shoot[target_id]!</label>
+			<label kind="assignment" x="-3026" y="-1317">apply_damage(target_id, atk),
+present = find_target(range, rof, coord[0], coord[1])</label>
+			<nail x="-2507" y="-1351"/>
+			<nail x="-3060" y="-1351"/>
 		</transition>
 		<transition id="id44">
 			<source ref="id41"/>
 			<target ref="id40"/>
 			<label kind="guard" x="-3519" y="-1105">!present</label>
-			<nail x="-3298" y="-1088"/>
+			<nail x="-3060" y="-1088"/>
 			<nail x="-3646" y="-1088"/>
 		</transition>
 		<transition id="id45">
 			<source ref="id41"/>
 			<target ref="id42"/>
-			<label kind="guard" x="-3187" y="-1207">present</label>
-			<label kind="assignment" x="-3247" y="-1190">target_id = acquire_target()</label>
+			<label kind="guard" x="-2881" y="-1215">present</label>
+			<label kind="assignment" x="-2958" y="-1181">target_id = acquire_target()</label>
 		</transition>
 		<transition id="id46">
 			<source ref="id40"/>
 			<target ref="id41"/>
-			<label kind="assignment" x="-3544" y="-1190">present = find_target()</label>
+			<label kind="assignment" x="-3604" y="-1190">present = find_target(range, rof, coord[0], coord[1])</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
