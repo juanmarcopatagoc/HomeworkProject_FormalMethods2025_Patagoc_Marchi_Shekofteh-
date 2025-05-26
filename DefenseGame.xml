@@ -229,7 +229,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 }</declaration>
 		<location id="id4" x="-2031" y="-1181">
 			<name x="-2048" y="-1215">Spawn</name>
-			<label kind="invariant" x="-2091" y="-1164">t&lt;=SQUARE_SPAWN_INTERVAL</label>
+			<label kind="invariant" x="-2091" y="-1164">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
 		<location id="id5" x="-884" y="-909">
 			<name x="-894" y="-943">Decide</name>
@@ -427,7 +427,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 }</declaration>
 		<location id="id22" x="-1351" y="-323">
 			<name x="-1361" y="-357">Spawn</name>
-			<label kind="invariant" x="-1445" y="-306">t&lt;=SQUARE_SPAWN_INTERVAL</label>
+			<label kind="invariant" x="-1445" y="-306">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
 		<location id="id23" x="8" y="8">
 			<name x="-2" y="-26">decide</name>
@@ -598,7 +598,7 @@ S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id], id);
 // List one or more processes to be composed into a system.
-system S0, C0, M;</system>
+system S0, C0, S1, C1, S2, C2, M;</system>
 	<queries>
 		<query>
 			<formula>A[] not deadlock</formula>
