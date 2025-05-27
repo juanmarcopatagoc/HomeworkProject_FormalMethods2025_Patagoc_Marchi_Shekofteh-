@@ -118,7 +118,7 @@ int map[HEIGHT][WIDTH] = {
     {0,    0,    0,      0,    0,    0,      0,    PATH,   PATH,   PATH, PATH, PATH,   PATH, PATH, PATH,   PATH}  // y = 7
 };
 
-int id_inMap[HEIGHT][WIDTH] = {
+/*int id_inMap[HEIGHT][WIDTH] = {
 //x= 0     1     2       3     4     5       6     7       8       9     10    11      12    13    14      15
     {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 0
     {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 1
@@ -128,7 +128,7 @@ int id_inMap[HEIGHT][WIDTH] = {
     {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 5
     {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 6
     {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}  // y = 7
-};
+};*/
 
 
 //appling damage to the enemy target function
@@ -198,6 +198,13 @@ void updatePositions(){
     sqrs_pos[id][0] = x;
     sqrs_pos[id][1] = y;
 }
+
+
+void initializePositions(){
+    sqrs_pos[id][0] = -1;
+    sqrs_pos[id][1] = -1;
+}
+
 
 
 // Returns possible next positions from (x,y)
@@ -308,8 +315,6 @@ next[0][1] != -1</label>
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -348,8 +353,6 @@ next[i][1] != -1</label>
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -358,6 +361,7 @@ t := 0</label>
 			<target ref="id12"/>
 			<label kind="guard" x="-1844" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1844" y="-1139">t := 0, 
+initializePositions(),
 activation_order[id] := activation_counter,
 activation_counter++,
 square_alive[id] := true, 
@@ -380,8 +384,6 @@ t := 0</label>
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id,
 updatePositions(),
 mainTowerHP = mainTowerHP-SQUARE_DAMAGE,
 t := 0</label>
@@ -406,6 +408,11 @@ int next[2][2] = {
 void updatePositions(){
     circles_pos[id][0] = x;
     circles_pos[id][1] = y;
+}
+
+void initializePositions(){
+    circles_pos[id][0] = -1;
+    circles_pos[id][1] = -1;
 }
 
 // Returns possible next positions from (x,y)
@@ -514,8 +521,6 @@ next[0][1] != -1</label>
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -554,8 +559,6 @@ next[i][1] != -1</label>
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
@@ -563,7 +566,8 @@ t := 0</label>
 			<source ref="id25"/>
 			<target ref="id30"/>
 			<label kind="guard" x="-1190" y="-324">t &gt;= CIRCLE_SPAWN_INTERVAL * (id+1)</label>
-			<label kind="assignment" x="-1190" y="-298">t := 0, 
+			<label kind="assignment" x="-1190" y="-297">t := 0, 
+initializePositions(),
 activation_order[id + NUM_SQUARES] := activation_counter,
 activation_counter++,
 circle_alive[id] := true, 
@@ -586,8 +590,6 @@ t := 0</label>
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
-id_inMap[prev_y][prev_x] := -1,
-id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
 t := 0</label>
@@ -603,7 +605,7 @@ bool present;
 clock turret_clock;
 
 //local functions
-bool find_target(int range, int rof, int x, int y){
+/*bool find_target(int range, int rof, int x, int y){
     bool found= false;
     int r;
     int i;
@@ -708,11 +710,102 @@ bool find_target(int range, int rof, int x, int y){
         }
     }
     return found;
-}
+}*/
 
 int acquire_target(){
     return output_id;
-}</declaration>
+}
+
+int abs_val(int v) {
+    return (v &lt; 0) ? -v : v;
+}
+
+int chebyshev_distance(int x, int y, int tur_x, int tur_y) {
+    int dx = abs_val(x - tur_x);
+    int dy = abs_val(y - tur_y);
+    return (dx &gt; dy) ? dx : dy;
+}
+
+
+bool find_target(int r, int rof, int x, int y){
+    //scroll through square
+    //scroll through circle
+    bool found, square;
+    int i,j;
+    int min_distance, current_distance;
+    int min_id; 
+    int min_time;
+    int current_time;
+    
+    square = false;
+    
+    for (i = 0; i &lt; NUM_SQUARES; i++){
+        if(sqrs_pos[i][0] &gt; -1 &amp;&amp; sqrs_pos[i][1] &gt;-1){
+            if (abs_val(sqrs_pos[i][0] - x) &lt;= r &amp;&amp; abs_val(sqrs_pos[i][1] - y) &lt;= r) {
+                // within Chebyshev range
+                current_distance = chebyshev_distance(sqrs_pos[i][0], sqrs_pos[i][1], x, y);
+                if (!found){
+                    found = true;
+                    square = true;
+                    min_distance = current_distance;
+                    min_id = i;
+                    min_time = activation_order[i];
+                } else {
+                    if(current_distance &lt; min_distance){
+                        min_distance = current_distance;
+                        min_id = i;
+                        min_time = activation_order[i];
+                    } else if(current_distance == min_distance){
+                        current_time = activation_order[i];
+                        if(current_time &gt; min_time){
+                            min_distance = current_distance;
+                            min_id = i;
+                            min_time = activation_order[i];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    for (j=0; j &lt; NUM_CIRCLES; j++){
+        if(circles_pos[j][0] &gt; -1 &amp;&amp; circles_pos[j][1] &gt; -1){
+            if (abs_val(circles_pos[j][0] - x) &lt;= r &amp;&amp; abs_val(circles_pos[j][1] - y) &lt;= r) {
+                // within Chebyshev range
+                current_distance = chebyshev_distance(circles_pos[j][0], circles_pos[j][1], x, y);
+                if (!found){
+                    found = true;             
+                    min_distance = current_distance;
+                    min_id = j;
+                    min_time = activation_order[j+NUM_SQUARES];
+                } else {
+                    if(current_distance &lt; min_distance){
+                        square = false;
+                        min_distance = current_distance;
+                        min_id = j;
+                        min_time = activation_order[j+NUM_SQUARES];
+                    } else if(current_distance == min_distance){
+                        if(!square){
+                            current_time = activation_order[j+NUM_SQUARES];
+                            if(current_time &gt; min_time){
+                                min_distance = current_distance;
+                                min_id = j;
+                                min_time = activation_order[j+NUM_SQUARES];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(found){
+        output_id = (square) ? min_id : min_id + NUM_SQUARES;
+    }
+
+    return found;
+}
+</declaration>
 		<location id="id43" x="-3646" y="-1190">
 			<name x="-3663" y="-1224">idle</name>
 		</location>
