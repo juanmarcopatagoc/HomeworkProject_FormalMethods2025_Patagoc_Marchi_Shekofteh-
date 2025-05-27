@@ -5,7 +5,12 @@
 const int WIDTH = 16;
 const int HEIGHT = 8;
 const int MAP_SIZE = WIDTH * HEIGHT;
+
+// === CHANNELS ===
 chan attack;
+chan movement;
+broadcast chan turret_notify;
+
 
 // === Turrets Parameters ===
 
@@ -145,13 +150,27 @@ void apply_damage(int target_id, int dmg) {
 		<location id="id1" x="-459" y="-187">
 			<name x="-469" y="-221">GameOver</name>
 		</location>
+		<location id="id2" x="-799" y="-187">
+			<urgent/>
+		</location>
 		<init ref="id0"/>
-		<transition id="id2">
+		<transition id="id3">
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-782" y="-127">turret_notify!</label>
+			<nail x="-731" y="-127"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-765" y="-204">movement?</label>
+		</transition>
+		<transition id="id5">
 			<source ref="id0"/>
 			<target ref="id1"/>
 			<label kind="guard" x="-612" y="-204">mainTowerHP==0</label>
 		</transition>
-		<transition id="id3">
+		<transition id="id6">
 			<source ref="id0"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-671" y="-323">attack?</label>
@@ -241,100 +260,102 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
     // Edge case handling
     return ;
 }</declaration>
-		<location id="id4" x="-2031" y="-1181">
+		<location id="id7" x="-2031" y="-1181">
 			<name x="-2048" y="-1215">Spawn</name>
 			<label kind="invariant" x="-2091" y="-1164">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
-		<location id="id5" x="-884" y="-909">
-			<name x="-894" y="-943">Decide</name>
+		<location id="id8" x="-884" y="-739">
+			<name x="-894" y="-773">Decide</name>
 			<urgent/>
 		</location>
-		<location id="id6" x="-340" y="-909">
-			<name x="-350" y="-943">Attack</name>
-			<label kind="invariant" x="-399" y="-892">t&lt;=SQUARE_SPEED</label>
+		<location id="id9" x="-340" y="-739">
+			<name x="-350" y="-773">Attack</name>
+			<label kind="invariant" x="-399" y="-722">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<location id="id7" x="-612" y="-909">
-			<name x="-622" y="-943">Leave</name>
+		<location id="id10" x="-612" y="-739">
+			<name x="-622" y="-773">Leave</name>
 		</location>
-		<location id="id8" x="-1487" y="-909">
-			<name x="-1538" y="-943">Move_bifurcation</name>
-			<label kind="invariant" x="-1496" y="-892">t&lt;=SQUARE_SPEED</label>
+		<location id="id11" x="-1487" y="-739">
+			<name x="-1538" y="-773">Move_bifurcation</name>
+			<label kind="invariant" x="-1496" y="-722">t&lt;=SQUARE_SPEED</label>
 			<label kind="testcodeEnter">getNextPositions(x, y);</label>
 		</location>
-		<location id="id9" x="-1487" y="-1181">
+		<location id="id12" x="-1487" y="-1181">
 			<urgent/>
 		</location>
-		<location id="id10" x="-884" y="-1181">
+		<location id="id13" x="-884" y="-1181">
 			<name x="-894" y="-1215">Move</name>
 			<label kind="invariant" x="-935" y="-1173">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<location id="id11" x="-884" y="-1436">
+		<location id="id14" x="-884" y="-1436">
 			<label kind="invariant" x="-935" y="-1479">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<init ref="id4"/>
-		<transition id="id12">
-			<source ref="id9"/>
-			<target ref="id11"/>
+		<init ref="id7"/>
+		<transition id="id15">
+			<source ref="id12"/>
+			<target ref="id14"/>
 			<label kind="guard" x="-1615" y="-1351">next[0][0] == MAIN_X &amp;&amp; next[0][1] == MAIN_Y</label>
 			<nail x="-1487" y="-1436"/>
 		</transition>
-		<transition id="id13">
-			<source ref="id10"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-875" y="-1156">t &gt;= SQUARE_SPEED &amp;&amp;
+		<transition id="id16">
+			<source ref="id13"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-875" y="-1105">t &gt;= SQUARE_SPEED &amp;&amp;
 next[0][0] != -1 &amp;&amp; 
 next[0][1] != -1</label>
-			<label kind="assignment" x="-875" y="-1105">prev_x = x, 
+			<label kind="synchronisation" x="-875" y="-901">movement!</label>
+			<label kind="assignment" x="-875" y="-1054">prev_x = x, 
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
-		<transition id="id14">
-			<source ref="id9"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-1521" y="-1037">bifurcation</label>
+		<transition id="id17">
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-1530" y="-969">bifurcation</label>
 		</transition>
-		<transition id="id15">
-			<source ref="id9"/>
-			<target ref="id10"/>
+		<transition id="id18">
+			<source ref="id12"/>
+			<target ref="id13"/>
 			<label kind="guard" x="-1428" y="-1207">!bifurcation &amp;&amp; (next[0][0] != MAIN_X || next[0][1] != MAIN_Y)</label>
 		</transition>
-		<transition id="id16">
-			<source ref="id5"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-850" y="-909">square_health[id] &lt;= 0</label>
-			<label kind="assignment" x="-858" y="-884">square_alive[id] := false</label>
+		<transition id="id19">
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-850" y="-739">square_health[id] &lt;= 0</label>
+			<label kind="assignment" x="-858" y="-714">square_alive[id] := false</label>
 		</transition>
-		<transition id="id17">
-			<source ref="id5"/>
-			<target ref="id9"/>
+		<transition id="id20">
+			<source ref="id8"/>
+			<target ref="id12"/>
 			<label kind="guard" x="-1275" y="-1037">square_alive[id] == true</label>
 			<label kind="assignment" x="-1266" y="-1020">getNextPositions(x, y, prev_x, prev_y),
 t:=0</label>
 		</transition>
-		<transition id="id18">
-			<source ref="id8"/>
-			<target ref="id5"/>
-			<label kind="select" x="-1275" y="-901">i : int[0,1]</label>
-			<label kind="guard" x="-1275" y="-884">t &gt;= SQUARE_SPEED &amp;&amp;
+		<transition id="id21">
+			<source ref="id11"/>
+			<target ref="id8"/>
+			<label kind="select" x="-1275" y="-731">i : int[0,1]</label>
+			<label kind="guard" x="-1275" y="-714">t &gt;= SQUARE_SPEED &amp;&amp;
 next[i][0] != -1 &amp;&amp; 
 next[i][1] != -1</label>
-			<label kind="assignment" x="-1275" y="-824">prev_x = x, 
+			<label kind="synchronisation" x="-1275" y="-493">movement!</label>
+			<label kind="assignment" x="-1275" y="-654">prev_x = x, 
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id,
 updatePositions(),
 t := 0</label>
 		</transition>
-		<transition id="id19">
-			<source ref="id4"/>
-			<target ref="id9"/>
+		<transition id="id22">
+			<source ref="id7"/>
+			<target ref="id12"/>
 			<label kind="guard" x="-1844" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1844" y="-1139">t := 0, 
 activation_order[id] := activation_counter,
@@ -343,24 +364,24 @@ square_alive[id] := true,
 square_health[id] := SQUARE_HEALTH,
 getNextPositions(x, y, prev_x, prev_y)</label>
 		</transition>
-		<transition id="id20">
-			<source ref="id6"/>
-			<target ref="id7"/>
-			<label kind="guard" x="-552" y="-909">t &gt;= SQUARE_SPEED</label>
-			<label kind="assignment" x="-603" y="-884">square_alive[id] := false,
+		<transition id="id23">
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-552" y="-739">t &gt;= SQUARE_SPEED</label>
+			<label kind="assignment" x="-603" y="-714">square_alive[id] := false,
 t := 0</label>
 		</transition>
-		<transition id="id21">
-			<source ref="id11"/>
-			<target ref="id6"/>
-			<label kind="guard" x="-544" y="-1259">t &gt;= SQUARE_SPEED</label>
-			<label kind="synchronisation" x="-688" y="-1207">attack!</label>
-			<label kind="assignment" x="-493" y="-1242">prev_x = x,
+		<transition id="id24">
+			<source ref="id14"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-612" y="-1300">t &gt;= SQUARE_SPEED</label>
+			<label kind="synchronisation" x="-612" y="-1105">attack!</label>
+			<label kind="assignment" x="-612" y="-1283">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id,
 updatePositions(),
 mainTowerHP = mainTowerHP-SQUARE_DAMAGE,
 t := 0</label>
@@ -447,98 +468,100 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
     // Edge case handling
     return ;
 }</declaration>
-		<location id="id22" x="-1351" y="-323">
+		<location id="id25" x="-1351" y="-323">
 			<name x="-1361" y="-357">Spawn</name>
 			<label kind="invariant" x="-1445" y="-306">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
-		<location id="id23" x="8" y="8">
-			<name x="-2" y="-26">decide</name>
+		<location id="id26" x="8" y="194">
+			<name x="-2" y="160">decide</name>
 			<urgent/>
 		</location>
-		<location id="id24" x="484" y="8">
-			<name x="474" y="-26">Attack</name>
+		<location id="id27" x="739" y="195">
+			<name x="729" y="161">Attack</name>
 		</location>
-		<location id="id25" x="212" y="8">
-			<name x="202" y="-26">Leave</name>
+		<location id="id28" x="212" y="194">
+			<name x="202" y="160">Leave</name>
 		</location>
-		<location id="id26" x="-790" y="8">
-			<name x="-900" y="-9">Move_bifurcation</name>
-			<label kind="invariant" x="-800" y="25">t&lt;=CIRCLE_SPEED</label>
+		<location id="id29" x="-790" y="194">
+			<name x="-935" y="161">Move_bifurcation</name>
+			<label kind="invariant" x="-800" y="211">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<location id="id27" x="-790" y="-323">
+		<location id="id30" x="-790" y="-323">
 			<urgent/>
 		</location>
-		<location id="id28" x="8" y="-323">
+		<location id="id31" x="8" y="-323">
 			<name x="-2" y="-357">Move</name>
 			<label kind="invariant" x="-2" y="-306">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<location id="id29" x="0" y="-578">
+		<location id="id32" x="0" y="-578">
 			<label kind="invariant" x="-10" y="-561">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<init ref="id22"/>
-		<transition id="id30">
-			<source ref="id27"/>
-			<target ref="id29"/>
+		<init ref="id25"/>
+		<transition id="id33">
+			<source ref="id30"/>
+			<target ref="id32"/>
 			<label kind="guard" x="-772" y="-612">next[0][0] == MAIN_X &amp;&amp; next[0][1] == MAIN_Y</label>
 			<nail x="-790" y="-578"/>
 		</transition>
-		<transition id="id31">
-			<source ref="id28"/>
-			<target ref="id23"/>
-			<label kind="guard" x="-34" y="-289">t &gt;= CIRCLE_SPEED &amp;&amp;
+		<transition id="id34">
+			<source ref="id31"/>
+			<target ref="id26"/>
+			<label kind="guard" x="17" y="-221">t &gt;= CIRCLE_SPEED &amp;&amp;
 next[0][0] != -1 &amp;&amp; 
 next[0][1] != -1</label>
-			<label kind="assignment" x="-34" y="-238">prev_x = x, 
+			<label kind="synchronisation" x="17" y="-8">movement!</label>
+			<label kind="assignment" x="17" y="-170">prev_x = x, 
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id+NUM_SQUARES,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
-		<transition id="id32">
-			<source ref="id27"/>
-			<target ref="id28"/>
+		<transition id="id35">
+			<source ref="id30"/>
+			<target ref="id31"/>
 			<label kind="guard" x="-731" y="-340">!bifurcation &amp;&amp; (next[0][0] != MAIN_X || next[0][1] != MAIN_Y)</label>
 		</transition>
-		<transition id="id33">
-			<source ref="id27"/>
-			<target ref="id26"/>
+		<transition id="id36">
+			<source ref="id30"/>
+			<target ref="id29"/>
 			<label kind="guard" x="-790" y="-242">bifurcation</label>
 		</transition>
-		<transition id="id34">
-			<source ref="id23"/>
-			<target ref="id25"/>
-			<label kind="guard" x="8" y="25">circle_health[id] &lt;= 0</label>
-			<label kind="assignment" x="8" y="50">circle_alive[id] := false</label>
+		<transition id="id37">
+			<source ref="id26"/>
+			<target ref="id28"/>
+			<label kind="guard" x="8" y="211">circle_health[id] &lt;= 0</label>
+			<label kind="assignment" x="8" y="236">circle_alive[id] := false</label>
 		</transition>
-		<transition id="id35">
-			<source ref="id23"/>
-			<target ref="id27"/>
+		<transition id="id38">
+			<source ref="id26"/>
+			<target ref="id30"/>
 			<label kind="guard" x="-399" y="-187">circle_alive[id] == true</label>
 			<label kind="assignment" x="-408" y="-161">getNextPositions(x, y, prev_x, prev_y),
 t:=0</label>
 		</transition>
-		<transition id="id36">
-			<source ref="id26"/>
-			<target ref="id23"/>
-			<label kind="select" x="-459" y="9">i : int[0,1]</label>
-			<label kind="guard" x="-459" y="34">t &gt;= CIRCLE_SPEED &amp;&amp;
+		<transition id="id39">
+			<source ref="id29"/>
+			<target ref="id26"/>
+			<label kind="select" x="-459" y="195">i : int[0,1]</label>
+			<label kind="guard" x="-459" y="220">t &gt;= CIRCLE_SPEED &amp;&amp;
 next[i][0] != -1 &amp;&amp; 
 next[i][1] != -1</label>
-			<label kind="assignment" x="-459" y="94">prev_x = x, 
+			<label kind="synchronisation" x="-459" y="442">movement!</label>
+			<label kind="assignment" x="-459" y="280">prev_x = x, 
 prev_y = y,
 x = next[i][0], 
 y = next[i][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id+NUM_SQUARES,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 t := 0</label>
 		</transition>
-		<transition id="id37">
-			<source ref="id22"/>
-			<target ref="id27"/>
+		<transition id="id40">
+			<source ref="id25"/>
+			<target ref="id30"/>
 			<label kind="guard" x="-1190" y="-324">t &gt;= CIRCLE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1190" y="-298">t := 0, 
 activation_order[id + NUM_SQUARES] := activation_counter,
@@ -547,24 +570,24 @@ circle_alive[id] := true,
 circle_health[id] := CIRCLE_HEALTH,
 getNextPositions(x, y, prev_x, prev_y)</label>
 		</transition>
-		<transition id="id38">
-			<source ref="id24"/>
-			<target ref="id25"/>
-			<label kind="guard" x="297" y="25">t &gt;= CIRCLE_SPEED</label>
-			<label kind="assignment" x="280" y="42">circle_alive[id] := false,
+		<transition id="id41">
+			<source ref="id27"/>
+			<target ref="id28"/>
+			<label kind="guard" x="297" y="211">t &gt;= CIRCLE_SPEED</label>
+			<label kind="assignment" x="280" y="228">circle_alive[id] := false,
 t := 0</label>
 		</transition>
-		<transition id="id39">
-			<source ref="id29"/>
-			<target ref="id24"/>
-			<label kind="guard" x="221" y="-391">t &gt;= CIRCLE_SPEED</label>
-			<label kind="synchronisation" x="127" y="-357">attack!</label>
-			<label kind="assignment" x="221" y="-374">prev_x = x,
+		<transition id="id42">
+			<source ref="id32"/>
+			<target ref="id27"/>
+			<label kind="guard" x="459" y="-314">t &gt;= CIRCLE_SPEED</label>
+			<label kind="synchronisation" x="459" y="-119">attack!</label>
+			<label kind="assignment" x="459" y="-297">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
-id_inMap[prev_x][prev_y] := -1,
-id_inMap[x][y] := id+NUM_SQUARES,
+id_inMap[prev_y][prev_x] := -1,
+id_inMap[y][x] := id+NUM_SQUARES,
 updatePositions(),
 mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
 t := 0</label>
@@ -690,22 +713,21 @@ bool find_target(int range, int rof, int x, int y){
 int acquire_target(){
     return output_id;
 }</declaration>
-		<location id="id40" x="-3646" y="-1190">
+		<location id="id43" x="-3646" y="-1190">
 			<name x="-3663" y="-1224">idle</name>
-			<urgent/>
 		</location>
-		<location id="id41" x="-3060" y="-1190">
+		<location id="id44" x="-3060" y="-1190">
 			<name x="-3102" y="-1224">ready_to_fire</name>
 			<urgent/>
 		</location>
-		<location id="id42" x="-2507" y="-1190">
+		<location id="id45" x="-2507" y="-1190">
 			<name x="-2533" y="-1224">fire</name>
-			<label kind="invariant" x="-2567" y="-1181">turret_clock&gt;rof</label>
+			<label kind="invariant" x="-2567" y="-1181">turret_clock&gt;=rof</label>
 		</location>
-		<init ref="id40"/>
-		<transition id="id43">
-			<source ref="id42"/>
-			<target ref="id41"/>
+		<init ref="id43"/>
+		<transition id="id46">
+			<source ref="id45"/>
+			<target ref="id44"/>
 			<label kind="guard" x="-2822" y="-1377">turret_clock&lt;=rof</label>
 			<label kind="synchronisation" x="-2822" y="-1343">shoot[target_id]!</label>
 			<label kind="assignment" x="-3026" y="-1317">apply_damage(target_id, atk),
@@ -713,22 +735,23 @@ present = find_target(range, rof, coord[0], coord[1])</label>
 			<nail x="-2507" y="-1351"/>
 			<nail x="-3060" y="-1351"/>
 		</transition>
-		<transition id="id44">
-			<source ref="id41"/>
-			<target ref="id40"/>
+		<transition id="id47">
+			<source ref="id44"/>
+			<target ref="id43"/>
 			<label kind="guard" x="-3519" y="-1105">!present</label>
 			<nail x="-3060" y="-1088"/>
 			<nail x="-3646" y="-1088"/>
 		</transition>
-		<transition id="id45">
-			<source ref="id41"/>
-			<target ref="id42"/>
+		<transition id="id48">
+			<source ref="id44"/>
+			<target ref="id45"/>
 			<label kind="guard" x="-2881" y="-1215">present</label>
 			<label kind="assignment" x="-2958" y="-1181">target_id = acquire_target()</label>
 		</transition>
-		<transition id="id46">
-			<source ref="id40"/>
-			<target ref="id41"/>
+		<transition id="id49">
+			<source ref="id43"/>
+			<target ref="id44"/>
+			<label kind="synchronisation" x="-3502" y="-1173">turret_notify?</label>
 			<label kind="assignment" x="-3604" y="-1190">present = find_target(range, rof, coord[0], coord[1])</label>
 		</transition>
 	</template>
@@ -742,7 +765,7 @@ S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id], id);
 // List one or more processes to be composed into a system.
-system S0, C0, S1, C1, S2, C2, M;</system>
+system S0, C0, M, T;</system>
 	<queries>
 		<query>
 			<formula>A[] not deadlock</formula>
