@@ -5,11 +5,18 @@
 const int WIDTH = 16;
 const int HEIGHT = 8;
 const int MAP_SIZE = WIDTH * HEIGHT;
+const int num_enemy = 2;
+
+
+// === Game variables ===
+int enemy_cont = 0;
 
 // === CHANNELS ===
 chan attack;
 chan movement;
 broadcast chan turret_notify;
+chan enemy_leave;
+broadcast chan end_all;
 
 
 // === Turrets Parameters ===
@@ -150,6 +157,12 @@ void apply_damage(int target_id, int dmg) {
 </declaration>
 	<template>
 		<name>Map</name>
+		<declaration>bool end;
+
+bool check_end() {
+    return (enemy_cont == num_enemy || mainTowerHP == 0);
+}
+</declaration>
 		<location id="id0" x="-646" y="-187">
 			<name x="-656" y="-221">Idle</name>
 		</location>
@@ -159,24 +172,41 @@ void apply_damage(int target_id, int dmg) {
 		<location id="id2" x="-799" y="-187">
 			<urgent/>
 		</location>
+		<location id="id3" x="-739" y="42">
+			<urgent/>
+		</location>
 		<init ref="id0"/>
-		<transition id="id3">
+		<transition id="id4">
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-501" y="-85">end</label>
+			<label kind="synchronisation" x="-527" y="-51">end_all!</label>
+			<nail x="-476" y="-42"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-612" y="-102">!end</label>
+			<nail x="-578" y="-59"/>
+		</transition>
+		<transition id="id6">
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-756" y="-76">enemy_leave?</label>
+			<label kind="assignment" x="-782" y="-51">end := check_end()</label>
+		</transition>
+		<transition id="id7">
 			<source ref="id2"/>
 			<target ref="id0"/>
-			<label kind="synchronisation" x="-782" y="-127">turret_notify!</label>
+			<label kind="synchronisation" x="-824" y="-127">turret_notify!</label>
 			<nail x="-731" y="-127"/>
 		</transition>
-		<transition id="id4">
+		<transition id="id8">
 			<source ref="id0"/>
 			<target ref="id2"/>
 			<label kind="synchronisation" x="-765" y="-204">movement?</label>
 		</transition>
-		<transition id="id5">
-			<source ref="id0"/>
-			<target ref="id1"/>
-			<label kind="guard" x="-612" y="-204">mainTowerHP==0</label>
-		</transition>
-		<transition id="id6">
+		<transition id="id9">
 			<source ref="id0"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="-671" y="-323">attack?</label>
@@ -274,51 +304,119 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
     // Edge case handling
     return ;
 }</declaration>
-		<location id="id7" x="-2031" y="-1181">
+		<location id="id10" x="-2031" y="-1181">
 			<name x="-2048" y="-1215">Spawn</name>
 			<label kind="invariant" x="-2091" y="-1164">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
-		<location id="id8" x="-884" y="-739">
+		<location id="id11" x="-884" y="-739">
 			<name x="-894" y="-773">Decide</name>
 			<urgent/>
 		</location>
-		<location id="id9" x="-340" y="-739">
-			<name x="-350" y="-773">Attack</name>
-			<label kind="invariant" x="-399" y="-722">t&lt;=SQUARE_SPEED</label>
+		<location id="id12" x="-212" y="-739">
+			<name x="-222" y="-773">Attack</name>
+			<label kind="invariant" x="-271" y="-722">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<location id="id10" x="-612" y="-739">
-			<name x="-622" y="-773">Leave</name>
+		<location id="id13" x="-552" y="-739">
+			<name x="-562" y="-773">Leave</name>
 		</location>
-		<location id="id11" x="-1487" y="-739">
+		<location id="id14" x="-1487" y="-739">
 			<name x="-1538" y="-773">Move_bifurcation</name>
 			<label kind="invariant" x="-1496" y="-722">t&lt;=SQUARE_SPEED</label>
 			<label kind="testcodeEnter">getNextPositions(x, y);</label>
 		</location>
-		<location id="id12" x="-1487" y="-1181">
+		<location id="id15" x="-1487" y="-1181">
 			<urgent/>
 		</location>
-		<location id="id13" x="-884" y="-1181">
+		<location id="id16" x="-884" y="-1181">
 			<name x="-894" y="-1215">Move</name>
-			<label kind="invariant" x="-935" y="-1173">t&lt;=SQUARE_SPEED</label>
+			<label kind="invariant" x="-875" y="-1156">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<location id="id14" x="-884" y="-1436">
-			<label kind="invariant" x="-935" y="-1479">t&lt;=SQUARE_SPEED</label>
+		<location id="id17" x="-221" y="-1436">
+			<label kind="invariant" x="-272" y="-1479">t&lt;=SQUARE_SPEED</label>
 		</location>
-		<init ref="id7"/>
-		<transition id="id15">
-			<source ref="id12"/>
-			<target ref="id14"/>
+		<init ref="id10"/>
+		<transition id="id18">
+			<source ref="id17"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-323" y="-1079">end_all?</label>
+			<nail x="-340" y="-824"/>
+		</transition>
+		<transition id="id19">
+			<source ref="id16"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-714" y="-1164">end_all?</label>
+			<nail x="-629" y="-1130"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-1428" y="-629">end_all?</label>
+			<nail x="-1292" y="-459"/>
+			<nail x="-612" y="-459"/>
+		</transition>
+		<transition id="id21">
+			<source ref="id15"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-1207" y="-1122">end_all?</label>
+			<nail x="-977" y="-1062"/>
+		</transition>
+		<transition id="id22">
+			<source ref="id11"/>
+			<target ref="id13"/>
+			<label kind="synchronisation" x="-866" y="-565">end_all?</label>
+			<nail x="-884" y="-544"/>
+			<nail x="-629" y="-552"/>
+		</transition>
+		<transition id="id23">
+			<source ref="id17"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-544" y="-1326">square_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="-544" y="-1215">enemy_leave!</label>
+			<label kind="assignment" x="-544" y="-1292">square_alive[id] := false,
+health := square_health[id],
+enemy_cont++,
+t := 0</label>
+			<nail x="-374" y="-1326"/>
+			<nail x="-374" y="-918"/>
+		</transition>
+		<transition id="id24">
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-1469" y="-450">square_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="-1470" y="-467">enemy_leave!</label>
+			<label kind="assignment" x="-1470" y="-416">square_alive[id] := false,
+health := square_health[id],
+enemy_cont++,
+t := 0</label>
+			<nail x="-1487" y="-416"/>
+			<nail x="-552" y="-416"/>
+		</transition>
+		<transition id="id25">
+			<source ref="id16"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-595" y="-1096">square_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="-595" y="-986">enemy_leave!</label>
+			<label kind="assignment" x="-595" y="-1071">square_alive[id] := false,
+health := square_health[id],
+enemy_cont++,
+t := 0</label>
+			<nail x="-552" y="-1181"/>
+		</transition>
+		<transition id="id26">
+			<source ref="id15"/>
+			<target ref="id17"/>
 			<label kind="guard" x="-1615" y="-1351">next[0][0] == MAIN_X &amp;&amp; next[0][1] == MAIN_Y</label>
 			<nail x="-1487" y="-1436"/>
 		</transition>
-		<transition id="id16">
-			<source ref="id13"/>
-			<target ref="id8"/>
-			<label kind="guard" x="-875" y="-1105">t &gt;= SQUARE_SPEED &amp;&amp;
+		<transition id="id27">
+			<source ref="id16"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-875" y="-1130">t &gt;= SQUARE_SPEED &amp;&amp;
 next[0][0] != -1 &amp;&amp; 
-next[0][1] != -1</label>
-			<label kind="synchronisation" x="-875" y="-901">movement!</label>
-			<label kind="assignment" x="-875" y="-1054">prev_x = x, 
+next[0][1] != -1 &amp;&amp;
+square_health[id] &gt; 0</label>
+			<label kind="synchronisation" x="-875" y="-884">movement!</label>
+			<label kind="assignment" x="-875" y="-1045">prev_x = x, 
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
@@ -326,36 +424,43 @@ updatePositions(),
 health := square_health[id],
 t := 0</label>
 		</transition>
-		<transition id="id17">
-			<source ref="id12"/>
-			<target ref="id11"/>
+		<transition id="id28">
+			<source ref="id15"/>
+			<target ref="id14"/>
 			<label kind="guard" x="-1530" y="-969">bifurcation</label>
+			<label kind="assignment" x="-1530" y="-952">health := square_health[id]</label>
 		</transition>
-		<transition id="id18">
-			<source ref="id12"/>
-			<target ref="id13"/>
+		<transition id="id29">
+			<source ref="id15"/>
+			<target ref="id16"/>
 			<label kind="guard" x="-1428" y="-1207">!bifurcation &amp;&amp; (next[0][0] != MAIN_X || next[0][1] != MAIN_Y)</label>
+			<label kind="assignment" x="-1419" y="-1181">health := square_health[id]</label>
 		</transition>
-		<transition id="id19">
-			<source ref="id8"/>
-			<target ref="id10"/>
+		<transition id="id30">
+			<source ref="id11"/>
+			<target ref="id13"/>
 			<label kind="guard" x="-850" y="-739">square_health[id] &lt;= 0</label>
-			<label kind="assignment" x="-858" y="-714">square_alive[id] := false</label>
+			<label kind="synchronisation" x="-858" y="-629">enemy_leave!</label>
+			<label kind="assignment" x="-858" y="-714">square_alive[id] := false,
+health := square_health[id],
+enemy_cont++,
+t := 0</label>
 		</transition>
-		<transition id="id20">
-			<source ref="id8"/>
-			<target ref="id12"/>
-			<label kind="guard" x="-1275" y="-1037">square_alive[id] == true</label>
+		<transition id="id31">
+			<source ref="id11"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-1275" y="-1037">square_health[id] &gt; 0</label>
 			<label kind="assignment" x="-1266" y="-1020">getNextPositions(x, y, prev_x, prev_y),
+health := square_health[id],
 t:=0</label>
 		</transition>
-		<transition id="id21">
-			<source ref="id11"/>
-			<target ref="id8"/>
+		<transition id="id32">
+			<source ref="id14"/>
+			<target ref="id11"/>
 			<label kind="select" x="-1275" y="-731">i : int[0,1]</label>
 			<label kind="guard" x="-1275" y="-714">t &gt;= SQUARE_SPEED &amp;&amp;
 next[i][0] != -1 &amp;&amp; 
-next[i][1] != -1</label>
+next[i][1] != -1 &amp;&amp; square_health[id] &gt; 0</label>
 			<label kind="synchronisation" x="-1275" y="-493">movement!</label>
 			<label kind="assignment" x="-1275" y="-654">prev_x = x, 
 prev_y = y,
@@ -365,9 +470,9 @@ updatePositions(),
 health := square_health[id],
 t := 0</label>
 		</transition>
-		<transition id="id22">
-			<source ref="id7"/>
-			<target ref="id12"/>
+		<transition id="id33">
+			<source ref="id10"/>
+			<target ref="id15"/>
 			<label kind="guard" x="-1844" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1844" y="-1139">t := 0, 
 initializePositions(),
@@ -378,19 +483,22 @@ square_health[id] := SQUARE_HEALTH,
 health := square_health[id],
 getNextPositions(x, y, prev_x, prev_y)</label>
 		</transition>
-		<transition id="id23">
-			<source ref="id9"/>
-			<target ref="id10"/>
-			<label kind="guard" x="-552" y="-739">t &gt;= SQUARE_SPEED</label>
-			<label kind="assignment" x="-603" y="-714">square_alive[id] := false,
+		<transition id="id34">
+			<source ref="id12"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-527" y="-731">t &gt;= SQUARE_SPEED</label>
+			<label kind="synchronisation" x="-527" y="-629">enemy_leave!</label>
+			<label kind="assignment" x="-527" y="-705">square_alive[id] := false,
+health := 0,
+enemy_cont++,
 t := 0</label>
 		</transition>
-		<transition id="id24">
-			<source ref="id14"/>
-			<target ref="id9"/>
-			<label kind="guard" x="-612" y="-1300">t &gt;= SQUARE_SPEED</label>
-			<label kind="synchronisation" x="-612" y="-1105">attack!</label>
-			<label kind="assignment" x="-612" y="-1283">prev_x = x,
+		<transition id="id35">
+			<source ref="id17"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-204" y="-1343">t &gt;= SQUARE_SPEED &amp;&amp; square_health[id] &gt; 0</label>
+			<label kind="synchronisation" x="-204" y="-1164">attack!</label>
+			<label kind="assignment" x="-204" y="-1317">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
@@ -486,49 +594,116 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
     // Edge case handling
     return ;
 }</declaration>
-		<location id="id25" x="-1351" y="-323">
+		<location id="id36" x="-1351" y="-323">
 			<name x="-1361" y="-357">Spawn</name>
 			<label kind="invariant" x="-1445" y="-306">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
-		<location id="id26" x="8" y="194">
+		<location id="id37" x="8" y="194">
 			<name x="-2" y="160">decide</name>
 			<urgent/>
 		</location>
-		<location id="id27" x="739" y="195">
+		<location id="id38" x="739" y="195">
 			<name x="729" y="161">Attack</name>
 		</location>
-		<location id="id28" x="212" y="194">
-			<name x="202" y="160">Leave</name>
+		<location id="id39" x="348" y="195">
+			<name x="338" y="161">Leave</name>
 		</location>
-		<location id="id29" x="-790" y="194">
+		<location id="id40" x="-790" y="194">
 			<name x="-935" y="161">Move_bifurcation</name>
 			<label kind="invariant" x="-800" y="211">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<location id="id30" x="-790" y="-323">
+		<location id="id41" x="-790" y="-323">
 			<urgent/>
 		</location>
-		<location id="id31" x="8" y="-323">
+		<location id="id42" x="8" y="-323">
 			<name x="-2" y="-357">Move</name>
-			<label kind="invariant" x="-2" y="-306">t&lt;=CIRCLE_SPEED</label>
+			<label kind="invariant" x="17" y="-246">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<location id="id32" x="0" y="-578">
-			<label kind="invariant" x="-10" y="-561">t&lt;=CIRCLE_SPEED</label>
+		<location id="id43" x="731" y="-578">
+			<label kind="invariant" x="721" y="-561">t&lt;=CIRCLE_SPEED</label>
 		</location>
-		<init ref="id25"/>
-		<transition id="id33">
-			<source ref="id30"/>
-			<target ref="id32"/>
+		<init ref="id36"/>
+		<transition id="id44">
+			<source ref="id41"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-612" y="-297">end_all?</label>
+			<nail x="-51" y="-187"/>
+			<nail x="-8" y="93"/>
+		</transition>
+		<transition id="id45">
+			<source ref="id40"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="-680" y="280">end_all?</label>
+			<nail x="-467" y="442"/>
+			<nail x="314" y="433"/>
+		</transition>
+		<transition id="id46">
+			<source ref="id37"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="26" y="331">end_all?</label>
+			<nail x="8" y="348"/>
+			<nail x="289" y="348"/>
+		</transition>
+		<transition id="id47">
+			<source ref="id42"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="51" y="-289">end_all?</label>
+			<nail x="246" y="-212"/>
+		</transition>
+		<transition id="id48">
+			<source ref="id43"/>
+			<target ref="id39"/>
+			<label kind="synchronisation" x="544" y="68">end_all?</label>
+			<nail x="603" y="59"/>
+		</transition>
+		<transition id="id49">
+			<source ref="id43"/>
+			<target ref="id39"/>
+			<label kind="guard" x="408" y="-229">circle_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="408" y="-127">enemy_leave!</label>
+			<label kind="assignment" x="408" y="-204">circle_alive[id] := false,
+health := circle_health[id],
+enemy_cont++,
+t := 0</label>
+		</transition>
+		<transition id="id50">
+			<source ref="id42"/>
+			<target ref="id39"/>
+			<label kind="guard" x="323" y="-68">circle_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="323" y="42">enemy_leave!</label>
+			<label kind="assignment" x="323" y="-42">circle_alive[id] := false,
+health := circle_health[id],
+enemy_cont++,
+t := 0</label>
+			<nail x="348" y="-323"/>
+		</transition>
+		<transition id="id51">
+			<source ref="id40"/>
+			<target ref="id39"/>
+			<label kind="guard" x="-772" y="425">circle_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="-773" y="408">enemy_leave!</label>
+			<label kind="assignment" x="-772" y="459">circle_alive[id] := false,
+health := circle_health[id],
+enemy_cont++,
+t := 0</label>
+			<nail x="-790" y="459"/>
+			<nail x="348" y="459"/>
+		</transition>
+		<transition id="id52">
+			<source ref="id41"/>
+			<target ref="id43"/>
 			<label kind="guard" x="-772" y="-612">next[0][0] == MAIN_X &amp;&amp; next[0][1] == MAIN_Y</label>
 			<nail x="-790" y="-578"/>
 		</transition>
-		<transition id="id34">
-			<source ref="id31"/>
-			<target ref="id26"/>
+		<transition id="id53">
+			<source ref="id42"/>
+			<target ref="id37"/>
 			<label kind="guard" x="17" y="-221">t &gt;= CIRCLE_SPEED &amp;&amp;
 next[0][0] != -1 &amp;&amp; 
-next[0][1] != -1</label>
-			<label kind="synchronisation" x="17" y="-8">movement!</label>
-			<label kind="assignment" x="17" y="-170">prev_x = x, 
+next[0][1] != -1 &amp;&amp; 
+circle_health[id] &gt; 0</label>
+			<label kind="synchronisation" x="17" y="25">movement!</label>
+			<label kind="assignment" x="17" y="-119">prev_x = x, 
 prev_y = y,
 x = next[0][0], 
 y = next[0][1],
@@ -536,37 +711,44 @@ updatePositions(),
 health := circle_health[id],
 t := 0</label>
 		</transition>
-		<transition id="id35">
-			<source ref="id30"/>
-			<target ref="id31"/>
+		<transition id="id54">
+			<source ref="id41"/>
+			<target ref="id42"/>
 			<label kind="guard" x="-731" y="-340">!bifurcation &amp;&amp; (next[0][0] != MAIN_X || next[0][1] != MAIN_Y)</label>
+			<label kind="assignment" x="-731" y="-323">health := circle_health[id]</label>
 		</transition>
-		<transition id="id36">
-			<source ref="id30"/>
-			<target ref="id29"/>
-			<label kind="guard" x="-790" y="-242">bifurcation</label>
+		<transition id="id55">
+			<source ref="id41"/>
+			<target ref="id40"/>
+			<label kind="guard" x="-790" y="-93">bifurcation</label>
+			<label kind="assignment" x="-790" y="-64">health := circle_health[id]</label>
 		</transition>
-		<transition id="id37">
-			<source ref="id26"/>
-			<target ref="id28"/>
-			<label kind="guard" x="8" y="211">circle_health[id] &lt;= 0</label>
-			<label kind="assignment" x="8" y="236">circle_alive[id] := false</label>
+		<transition id="id56">
+			<source ref="id37"/>
+			<target ref="id39"/>
+			<label kind="guard" x="59" y="204">circle_health[id] &lt;= 0</label>
+			<label kind="synchronisation" x="59" y="306">enemy_leave!</label>
+			<label kind="assignment" x="59" y="221">circle_alive[id] := false,
+health := circle_health[id],
+enemy_cont++,
+t := 0</label>
 		</transition>
-		<transition id="id38">
-			<source ref="id26"/>
-			<target ref="id30"/>
-			<label kind="guard" x="-399" y="-187">circle_alive[id] == true</label>
+		<transition id="id57">
+			<source ref="id37"/>
+			<target ref="id41"/>
+			<label kind="guard" x="-399" y="-187">circle_health[id] &gt; 0</label>
 			<label kind="assignment" x="-408" y="-161">getNextPositions(x, y, prev_x, prev_y),
+health := circle_health[id],
 t:=0</label>
 		</transition>
-		<transition id="id39">
-			<source ref="id29"/>
-			<target ref="id26"/>
+		<transition id="id58">
+			<source ref="id40"/>
+			<target ref="id37"/>
 			<label kind="select" x="-459" y="195">i : int[0,1]</label>
 			<label kind="guard" x="-459" y="220">t &gt;= CIRCLE_SPEED &amp;&amp;
 next[i][0] != -1 &amp;&amp; 
-next[i][1] != -1</label>
-			<label kind="synchronisation" x="-459" y="442">movement!</label>
+next[i][1] != -1 &amp;&amp; circle_health[id] &gt; 0</label>
+			<label kind="synchronisation" x="-459" y="170">movement!</label>
 			<label kind="assignment" x="-459" y="280">prev_x = x, 
 prev_y = y,
 x = next[i][0], 
@@ -575,9 +757,9 @@ updatePositions(),
 health := circle_health[id],
 t := 0</label>
 		</transition>
-		<transition id="id40">
-			<source ref="id25"/>
-			<target ref="id30"/>
+		<transition id="id59">
+			<source ref="id36"/>
+			<target ref="id41"/>
 			<label kind="guard" x="-1190" y="-324">t &gt;= CIRCLE_SPAWN_INTERVAL * (id+1)</label>
 			<label kind="assignment" x="-1190" y="-297">t := 0, 
 initializePositions(),
@@ -588,19 +770,22 @@ circle_health[id] := CIRCLE_HEALTH,
 health := circle_health[id],
 getNextPositions(x, y, prev_x, prev_y)</label>
 		</transition>
-		<transition id="id41">
-			<source ref="id27"/>
-			<target ref="id28"/>
-			<label kind="guard" x="297" y="211">t &gt;= CIRCLE_SPEED</label>
-			<label kind="assignment" x="280" y="228">circle_alive[id] := false,
+		<transition id="id60">
+			<source ref="id38"/>
+			<target ref="id39"/>
+			<label kind="guard" x="459" y="204">t &gt;= CIRCLE_SPEED</label>
+			<label kind="synchronisation" x="459" y="306">enemy_leave!</label>
+			<label kind="assignment" x="459" y="229">circle_alive[id] := false,
+health := 0,
+enemy_cont++,
 t := 0</label>
 		</transition>
-		<transition id="id42">
-			<source ref="id32"/>
-			<target ref="id27"/>
-			<label kind="guard" x="459" y="-314">t &gt;= CIRCLE_SPEED</label>
-			<label kind="synchronisation" x="459" y="-119">attack!</label>
-			<label kind="assignment" x="459" y="-297">prev_x = x,
+		<transition id="id61">
+			<source ref="id43"/>
+			<target ref="id38"/>
+			<label kind="guard" x="748" y="-374">t &gt;= CIRCLE_SPEED &amp;&amp; circle_health[id] &gt; 0</label>
+			<label kind="synchronisation" x="748" y="-204">attack!</label>
+			<label kind="assignment" x="748" y="-348">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
@@ -613,10 +798,10 @@ t := 0</label>
 		<name x="5" y="5">Turret</name>
 		<parameter>int &amp;range, int &amp;rof, int &amp;atk, int x, int y, int id</parameter>
 		<declaration>int[0, NUM_SQUARES+NUM_CIRCLES-1] target_id;
-int[0, NUM_SQUARES+NUM_CIRCLES-1] output_id;
 int local_value;
 bool present;
 clock turret_clock;
+bool shooted;
 
 //local functions
 /*bool find_target(int range, int rof, int x, int y){
@@ -726,10 +911,6 @@ clock turret_clock;
     return found;
 }*/
 
-int acquire_target(){
-    return output_id;
-}
-
 int abs_val(int v) {
     return (v &lt; 0) ? -v : v;
 }
@@ -815,52 +996,72 @@ bool find_target(int r, int rof, int x, int y){
     }
 
     if(found){
-        output_id = (square) ? min_id : min_id + NUM_SQUARES;
+        target_id = (square) ? min_id : min_id + NUM_SQUARES;
     }
 
     return found;
 }
 </declaration>
-		<location id="id43" x="-3646" y="-1190">
+		<location id="id62" x="-3646" y="-1190">
 			<name x="-3663" y="-1224">idle</name>
 		</location>
-		<location id="id44" x="-3060" y="-1190">
+		<location id="id63" x="-3060" y="-1190">
 			<name x="-3102" y="-1224">ready_to_fire</name>
-			<urgent/>
+			<committed/>
 		</location>
-		<location id="id45" x="-2584" y="-1190">
+		<location id="id64" x="-2584" y="-1190">
 			<name x="-2610" y="-1224">reload</name>
-			<label kind="invariant" x="-2593" y="-1173">turret_clock &lt;= rof</label>
+			<label kind="invariant" x="-2592" y="-1173">turret_clock &lt;= rof</label>
 		</location>
-		<init ref="id43"/>
-		<transition id="id46">
-			<source ref="id45"/>
-			<target ref="id44"/>
-			<label kind="guard" x="-2822" y="-1377">turret_clock &gt;= rof</label>
-			<label kind="assignment" x="-2941" y="-1334">present = find_target(range, rof, x, y)</label>
-			<nail x="-2584" y="-1351"/>
-			<nail x="-3060" y="-1351"/>
+		<location id="id65" x="-2992" y="-909">
+			<name x="-3002" y="-943">End</name>
+		</location>
+		<init ref="id62"/>
+		<transition id="id66">
+			<source ref="id62"/>
+			<target ref="id65"/>
+			<label kind="synchronisation" x="-3629" y="-977">end_all?</label>
+			<nail x="-3689" y="-986"/>
 		</transition>
-		<transition id="id47">
-			<source ref="id44"/>
-			<target ref="id43"/>
+		<transition id="id67">
+			<source ref="id64"/>
+			<target ref="id65"/>
+			<label kind="synchronisation" x="-2873" y="-1028">end_all?</label>
+		</transition>
+		<transition id="id68">
+			<source ref="id63"/>
+			<target ref="id65"/>
+			<label kind="synchronisation" x="-3051" y="-1037">end_all?</label>
+		</transition>
+		<transition id="id69">
+			<source ref="id64"/>
+			<target ref="id62"/>
+			<label kind="guard" x="-3629" y="-1334">turret_clock &gt;=rof</label>
+			<label kind="assignment" x="-3628" y="-1309">shooted := false</label>
+			<nail x="-2575" y="-1309"/>
+			<nail x="-3646" y="-1309"/>
+		</transition>
+		<transition id="id70">
+			<source ref="id63"/>
+			<target ref="id62"/>
 			<label kind="guard" x="-3519" y="-1105">!present</label>
 			<nail x="-3060" y="-1088"/>
 			<nail x="-3646" y="-1088"/>
 		</transition>
-		<transition id="id48">
-			<source ref="id44"/>
-			<target ref="id45"/>
+		<transition id="id71">
+			<source ref="id63"/>
+			<target ref="id64"/>
 			<label kind="guard" x="-2881" y="-1215">present</label>
-			<label kind="assignment" x="-2958" y="-1181">target_id = acquire_target(),
-apply_damage(target_id, atk),
-turret_clock := 0</label>
+			<label kind="assignment" x="-2958" y="-1181">apply_damage(target_id, atk),
+turret_clock := 0,
+shooted := true</label>
 		</transition>
-		<transition id="id49">
-			<source ref="id43"/>
-			<target ref="id44"/>
-			<label kind="synchronisation" x="-3502" y="-1147">turret_notify?</label>
-			<label kind="assignment" x="-3604" y="-1190">present = find_target(range, rof, x, y)</label>
+		<transition id="id72">
+			<source ref="id62"/>
+			<target ref="id63"/>
+			<label kind="synchronisation" x="-3604" y="-1147">turret_notify?</label>
+			<label kind="assignment" x="-3604" y="-1190">present = find_target(range, rof, x, y),
+shooted := false</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
@@ -876,17 +1077,14 @@ T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locat
 system S0, C0, M, T;</system>
 	<queries>
 		<query>
-			<formula>A[] not deadlock</formula>
+			<formula>E&lt;&gt; GameOver</formula>
 			<comment/>
-			<result outcome="failure" type="quality" timestamp="2025-04-26 16:53:53 +0200">
-			</result>
 		</query>
 		<query>
-			<formula>E&lt;&gt; C0.Leave and C1.Leave and C2.Leave and
-    S0.Leave and S1.Leave and S2.Leave
+			<formula>E&lt;&gt; C0.Leave and S0.Leave
 </formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-04-26 17:09:46 +0200">
+			<result outcome="success" type="quality" timestamp="2025-06-27 23:43:49 +0200">
 			</result>
 		</query>
 	</queries>
