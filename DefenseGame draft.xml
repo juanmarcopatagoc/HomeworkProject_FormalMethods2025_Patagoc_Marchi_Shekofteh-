@@ -5,7 +5,9 @@
 const int WIDTH = 16;
 const int HEIGHT = 8;
 const int MAP_SIZE = WIDTH * HEIGHT;
-const int num_enemy = 2;
+const int num_enemy = 6;
+const int LONGEST_PATH = 26;
+
 
 
 // === Game variables ===
@@ -83,7 +85,7 @@ int sqrs_pos[NUM_SQUARES][2];
 int circles_pos[NUM_CIRCLES][2];
 
 // Main Tower
-int mainTowerHP = 10;
+int mainTowerHP = 100;
 
 // Enemy state arrays
 int circle_health[NUM_CIRCLES];
@@ -224,6 +226,7 @@ int health;
 int prev_x = -1;
 int prev_y = -1;
 bool bifurcation;
+bool ReachMainTower = false;
 
 int next[2][2] = {
     {-1, -1},
@@ -504,6 +507,7 @@ x = next[0][0],
 y = next[0][1],
 updatePositions(),
 mainTowerHP = mainTowerHP-SQUARE_DAMAGE,
+ReachMainTower = true,
 t := 0</label>
 		</transition>
 	</template>
@@ -518,6 +522,7 @@ int health;
 int prev_x = -1;
 int prev_y = -1;
 bool bifurcation;
+bool ReachMainTower = false;
 
 int next[2][2] = {
     {-1, -1},
@@ -785,13 +790,14 @@ t := 0</label>
 			<source ref="id43"/>
 			<target ref="id38"/>
 			<label kind="guard" x="748" y="-374">t &gt;= CIRCLE_SPEED &amp;&amp; circle_health[id] &gt; 0</label>
-			<label kind="synchronisation" x="748" y="-204">attack!</label>
+			<label kind="synchronisation" x="748" y="-187">attack!</label>
 			<label kind="assignment" x="748" y="-348">prev_x = x,
 prev_y = y,
 x = next[0][0],
 y = next[0][1],
 updatePositions(),
 mainTowerHP := mainTowerHP - CIRCLE_DAMAGE, 
+ReachMainTower = true,
 t := 0</label>
 		</transition>
 	</template>
@@ -1075,17 +1081,19 @@ S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locations[id].y , id);
 // List one or more processes to be composed into a system.
-system S0, S1, S2, C0, C1, C2, M, T;</system>
+system S0, S1, S2, C0, C1, C2, M;</system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; M.GameOver</formula>
 			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-06-28 12:14:36 +0200">
+			</result>
 		</query>
 		<query>
-			<formula>E&lt;&gt; C0.Leave and S0.Leave
+			<formula>A&lt;&gt; C0.ReachMainTower and S0.ReachMainTower and C1.ReachMainTower  and S1.ReachMainTower and C2.ReachMainTower  and S2.ReachMainTower
 </formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-06-27 23:43:49 +0200">
+			<result outcome="success" type="quality" timestamp="2025-06-28 12:07:08 +0200">
 			</result>
 		</query>
 		<query>
@@ -1093,12 +1101,18 @@ system S0, S1, S2, C0, C1, C2, M, T;</system>
 (globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C1.Attack) or 
 (globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C2.Attack)</formula>
 			<comment>Property III</comment>
+			<result outcome="success" type="quality" timestamp="2025-06-28 12:24:09 +0200">
+			</result>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S0.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S1.Attack) or 
+			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S0.Attack) or
+(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S1.Attack) or
 (globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S2.Attack)</formula>
 			<comment>Property IV</comment>
+			<option key="--diagnostic" value="2"/>
+			<result outcome="success" type="quality" timestamp="2025-06-28 13:09:00 +0200">
+				<option key="--diagnostic" value="2"/>
+			</result>
 		</query>
 		<query>
 			<formula>A[] (S0.Spawn or (S0.next[0][0]!=-1 and S0.next[0][1]!=-1)) and
@@ -1108,6 +1122,8 @@ system S0, S1, S2, C0, C1, C2, M, T;</system>
     (C1.Spawn or (C1.next[0][0]!=-1 and C1.next[0][1]!=-1)) and
     (C2.Spawn or (C2.next[0][0]!=-1 and C2.next[0][1]!=-1))</formula>
 			<comment>Property V</comment>
+			<result outcome="success" type="quality" timestamp="2025-06-28 13:13:51 +0200">
+			</result>
 		</query>
 	</queries>
 </nta>
