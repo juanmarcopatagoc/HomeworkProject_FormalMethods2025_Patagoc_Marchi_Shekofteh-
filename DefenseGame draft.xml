@@ -170,10 +170,10 @@ bool check_end() {
 			<name x="-469" y="-221">GameOver</name>
 		</location>
 		<location id="id2" x="-799" y="-187">
-			<urgent/>
+			<committed/>
 		</location>
 		<location id="id3" x="-739" y="42">
-			<urgent/>
+			<committed/>
 		</location>
 		<init ref="id0"/>
 		<transition id="id4">
@@ -1011,7 +1011,7 @@ bool find_target(int r, int rof, int x, int y){
 		</location>
 		<location id="id64" x="-2584" y="-1190">
 			<name x="-2610" y="-1224">reload</name>
-			<label kind="invariant" x="-2592" y="-1173">turret_clock &lt;= rof</label>
+			<label kind="invariant" x="-2592" y="-1173">turret_clock &lt;= rof - 1</label>
 		</location>
 		<location id="id65" x="-2992" y="-909">
 			<name x="-3002" y="-943">End</name>
@@ -1036,7 +1036,7 @@ bool find_target(int r, int rof, int x, int y){
 		<transition id="id69">
 			<source ref="id64"/>
 			<target ref="id62"/>
-			<label kind="guard" x="-3629" y="-1334">turret_clock &gt;=rof</label>
+			<label kind="guard" x="-3629" y="-1334">turret_clock &gt;=rof -1</label>
 			<label kind="assignment" x="-3628" y="-1309">shooted := false</label>
 			<nail x="-2575" y="-1309"/>
 			<nail x="-3646" y="-1309"/>
