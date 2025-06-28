@@ -1087,5 +1087,26 @@ system S0, C0, M, T;</system>
 			<result outcome="success" type="quality" timestamp="2025-06-27 23:43:49 +0200">
 			</result>
 		</query>
+		<query>
+			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*CIRCLE_SPEED+CIRCLE_SPAWN_INTERVAL and C0.Attack) or 
+(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C1.Attack) or 
+(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C2.Attack)</formula>
+			<comment>Property III</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S0.Attack) or 
+(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S1.Attack) or 
+(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S2.Attack)</formula>
+			<comment>Property IV</comment>
+		</query>
+		<query>
+			<formula>A[] (S0.Spawn or (S0.next[0][0]!=-1 and S0.next[0][1]!=-1)) and
+    (S1.Spawn or (S1.next[0][0]!=-1 and S1.next[0][1]!=-1)) and
+    (S2.Spawn or (S2.next[0][0]!=-1 and S2.next[0][1]!=-1)) and
+    (C0.Spawn or (C0.next[0][0]!=-1 and C0.next[0][1]!=-1)) and
+    (C1.Spawn or (C1.next[0][0]!=-1 and C1.next[0][1]!=-1)) and
+    (C2.Spawn or (C2.next[0][0]!=-1 and C2.next[0][1]!=-1))</formula>
+			<comment>Property V</comment>
+		</query>
 	</queries>
 </nta>
