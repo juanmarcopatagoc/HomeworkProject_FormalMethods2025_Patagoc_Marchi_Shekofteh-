@@ -10,7 +10,6 @@ const int num_enemy = 2;
 
 // === Game variables ===
 int enemy_cont = 0;
-const int LONGEST_PATH = 26; //note that every possible path is exactly 26 steps long
 
 // === CHANNELS ===
 chan attack;
@@ -605,7 +604,6 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 		</location>
 		<location id="id38" x="739" y="195">
 			<name x="729" y="161">Attack</name>
-			<label kind="invariant" x="729" y="212">t&lt;=CIRCLE_SPEED</label>
 		</location>
 		<location id="id39" x="348" y="195">
 			<name x="338" y="161">Leave</name>
@@ -1076,7 +1074,7 @@ S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locations[id].y , id);
 // List one or more processes to be composed into a system.
-system S0, C0,S1, C1, S2, C2, M;</system>
+system S0, C0, M, T;</system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; GameOver</formula>
@@ -1086,33 +1084,8 @@ system S0, C0,S1, C1, S2, C2, M;</system>
 			<formula>E&lt;&gt; C0.Leave and S0.Leave
 </formula>
 			<comment/>
-<<<<<<< Updated upstream
 			<result outcome="success" type="quality" timestamp="2025-06-27 23:43:49 +0200">
-=======
-			<result outcome="success" type="quality" timestamp="2025-06-27 20:05:04 +0200">
->>>>>>> Stashed changes
 			</result>
-		</query>
-		<query>
-			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S0.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S1.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S2.Attack)</formula>
-			<comment>Property III</comment>
-		</query>
-		<query>
-			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*CIRCLE_SPEED+CIRCLE_SPAWN_INTERVAL and C0.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C1.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C2.Attack)</formula>
-			<comment>Property IV</comment>
-		</query>
-		<query>
-			<formula>A[] (S0.Spawn or (S0.next[0][0]!=-1 and S0.next[0][1]!=-1)) and
-    (S1.Spawn or (S1.next[0][0]!=-1 and S1.next[0][1]!=-1)) and
-    (S2.Spawn or (S2.next[0][0]!=-1 and S2.next[0][1]!=-1)) and
-    (C0.Spawn or (C0.next[0][0]!=-1 and C0.next[0][1]!=-1)) and
-    (C1.Spawn or (C1.next[0][0]!=-1 and C1.next[0][1]!=-1)) and
-    (C2.Spawn or (C2.next[0][0]!=-1 and C2.next[0][1]!=-1))</formula>
-			<comment/>
 		</query>
 	</queries>
 </nta>
