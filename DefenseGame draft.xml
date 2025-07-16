@@ -50,9 +50,22 @@ typedef struct {
 //Turrets state arrays;
 typedef int[0, NUM_TURRETS-1] id_t;
 chan shoot[id_t];
-int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE,BASIC_RANGE};
-int rofs[id_t] = {BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF,BASIC_ROF};
-int atks[id_t] = {BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK,BASIC_ATK};
+
+// === Configuration I ===
+int ranges[id_t] = {SNIPER_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, CANNON_RANGE, CANNON_RANGE};
+int rofs[id_t] = {SNIPER_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, CANNON_ROF, CANNON_ROF};
+int atks[id_t] = {SNIPER_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, CANNON_ATK, CANNON_ATK};
+/*
+// === Configuration II ===
+int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, SNIPER_RANGE, SNIPER_RANGE};
+int rofs[id_t] = {BASIC_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, SNIPER_ROF, SNIPER_ROF};
+int atks[id_t] = {BASIC_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, SNIPER_ATK, SNIPER_ATK};
+
+// === Configuration III ===
+int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, SNIPER_RANGE, SNIPER_RANGE};
+int rofs[id_t] = {BASIC_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, SNIPER_ROF, SNIPER_ROF};
+int atks[id_t] = {BASIC_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, SNIPER_ATK, SNIPER_ATK};
+*/
 const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
 
 // === Enemies Parameters ===
@@ -85,7 +98,7 @@ int sqrs_pos[NUM_SQUARES][2];
 int circles_pos[NUM_CIRCLES][2];
 
 // Main Tower
-int mainTowerHP = 100;
+int mainTowerHP = 10;
 
 // Enemy state arrays
 int circle_health[NUM_CIRCLES];
@@ -1081,7 +1094,7 @@ S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locations[id].y , id);
 // List one or more processes to be composed into a system.
-system S0, S1, S2, C0, C1, C2, M;</system>
+system S0, S1, S2, C0, C1, C2, M, T;</system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; M.GameOver</formula>
@@ -1124,6 +1137,10 @@ system S0, S1, S2, C0, C1, C2, M;</system>
 			<comment>Property V</comment>
 			<result outcome="success" type="quality" timestamp="2025-06-28 13:13:51 +0200">
 			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; mainTowerHP &lt;= 0</formula>
+			<comment/>
 		</query>
 	</queries>
 </nta>
