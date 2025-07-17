@@ -23,8 +23,7 @@ broadcast chan end_all;
 
 // === Turrets Parameters ===
 
-//Turrets
-const int NUM_TURRETS = 7;
+
 
 //Turrets Damage
 const int SNIPER_ATK = 20;
@@ -47,26 +46,35 @@ typedef struct {
     int y;
 } Position;
 
-//Turrets state arrays;
+// === Configuration I ===
+/*
+const int NUM_TURRETS = 7;
 typedef int[0, NUM_TURRETS-1] id_t;
 chan shoot[id_t];
-
-// === Configuration I ===
 int ranges[id_t] = {SNIPER_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, CANNON_RANGE, CANNON_RANGE};
 int rofs[id_t] = {SNIPER_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, CANNON_ROF, CANNON_ROF};
 int atks[id_t] = {SNIPER_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, CANNON_ATK, CANNON_ATK};
-/*
-// === Configuration II ===
-int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, SNIPER_RANGE, SNIPER_RANGE};
-int rofs[id_t] = {BASIC_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, SNIPER_ROF, SNIPER_ROF};
-int atks[id_t] = {BASIC_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, SNIPER_ATK, SNIPER_ATK};
-
-// === Configuration III ===
-int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, SNIPER_RANGE, SNIPER_RANGE};
-int rofs[id_t] = {BASIC_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, SNIPER_ROF, SNIPER_ROF};
-int atks[id_t] = {BASIC_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, SNIPER_ATK, SNIPER_ATK};
-*/
 const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
+*/
+// === Configuration II ===
+const int NUM_TURRETS = 4;
+typedef int[0, NUM_TURRETS-1] id_t;
+chan shoot[id_t];
+int ranges[id_t] = {SNIPER_RANGE, CANNON_RANGE, CANNON_RANGE, CANNON_RANGE};
+int rofs[id_t] = {SNIPER_ROF, CANNON_ROF, CANNON_ROF, CANNON_ROF};
+int atks[id_t] = {SNIPER_ATK, CANNON_ATK, CANNON_ATK, CANNON_ATK};
+const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}};
+/*
+// === Configuration III ===
+const int NUM_TURRETS = 7;
+typedef int[0, NUM_TURRETS-1] id_t;
+chan shoot[id_t];
+int ranges[id_t] = {BASIC_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, SNIPER_RANGE, SNIPER_RANGE};
+int rofs[id_t] = {BASIC_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, SNIPER_ROF, SNIPER_ROF};
+int atks[id_t] = {BASIC_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, SNIPER_ATK, SNIPER_ATK};
+const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
+*/
+
 
 // === Enemies Parameters ===
 
