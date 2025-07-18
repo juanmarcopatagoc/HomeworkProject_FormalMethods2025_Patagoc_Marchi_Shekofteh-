@@ -5,7 +5,6 @@
 const int WIDTH = 16;
 const int HEIGHT = 8;
 const int MAP_SIZE = WIDTH * HEIGHT;
-const int num_enemy = 6;
 const int LONGEST_PATH = 26;
 
 
@@ -14,10 +13,10 @@ const int LONGEST_PATH = 26;
 int enemy_cont = 0;
 
 // === CHANNELS ===
-chan attack;
-chan movement;
+broadcast chan attack;
+broadcast chan movement;
 broadcast chan turret_notify;
-chan enemy_leave;
+broadcast chan enemy_leave;
 broadcast chan end_all;
 
 
@@ -49,7 +48,7 @@ typedef struct {
 
 //Turrets state arrays;
 typedef int[0, NUM_TURRETS-1] id_t;
-chan shoot[id_t];
+broadcast chan shoot[id_t];
 
 // === Configuration I ===
 int ranges[id_t] = {SNIPER_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPER_RANGE, CANNON_RANGE, CANNON_RANGE};
@@ -75,6 +74,7 @@ const int NUM_CIRCLES = 400;
 const int NUM_SQUARES = 300;
 typedef int[0, NUM_CIRCLES-1] id_c;
 typedef int[0, NUM_SQUARES-1] id_s;
+const int num_enemy = NUM_CIRCLES + NUM_SQUARES;
 
 //Enemies Speeds
 const int CIRCLE_SPEED = 1;
@@ -256,8 +256,8 @@ void updatePositions(){
 
 
 void initializePositions(){
-    sqrs_pos[id][0] = -1;
-    sqrs_pos[id][1] = -1;
+    sqrs_pos[id][0] = 0;
+    sqrs_pos[id][1] = 0;
 }
 
 
@@ -332,14 +332,14 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 		</location>
 		<location id="id12" x="-212" y="-739">
 			<name x="-222" y="-773">Attack</name>
-			<label kind="invariant" x="-271" y="-722">t&lt;=SQUARE_SPEED</label>
+			<label kind="exponentialrate" x="-222" y="-705">SQUARE_SPEED : 10</label>
 		</location>
 		<location id="id13" x="-552" y="-739">
 			<name x="-562" y="-773">Leave</name>
 		</location>
 		<location id="id14" x="-1487" y="-739">
 			<name x="-1538" y="-773">Move_bifurcation</name>
-			<label kind="invariant" x="-1496" y="-722">t&lt;=SQUARE_SPEED</label>
+			<label kind="exponentialrate" x="-1497" y="-705">SQUARE_SPEED : 10</label>
 			<label kind="testcodeEnter">getNextPositions(x, y);</label>
 		</location>
 		<location id="id15" x="-1487" y="-1181">
@@ -347,10 +347,10 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 		</location>
 		<location id="id16" x="-884" y="-1181">
 			<name x="-894" y="-1215">Move</name>
-			<label kind="invariant" x="-875" y="-1156">t&lt;=SQUARE_SPEED</label>
+			<label kind="exponentialrate" x="-894" y="-1147">SQUARE_SPEED : 10</label>
 		</location>
 		<location id="id17" x="-221" y="-1436">
-			<label kind="invariant" x="-272" y="-1479">t&lt;=SQUARE_SPEED</label>
+			<label kind="exponentialrate" x="-231" y="-1402">SQUARE_SPEED : 10</label>
 		</location>
 		<init ref="id10"/>
 		<transition id="id18">
@@ -550,8 +550,8 @@ void updatePositions(){
 }
 
 void initializePositions(){
-    circles_pos[id][0] = -1;
-    circles_pos[id][1] = -1;
+    circles_pos[id][0] = 0;
+    circles_pos[id][1] = 0;
 }
 
 // Returns possible next positions from (x,y)
@@ -624,24 +624,24 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 		</location>
 		<location id="id38" x="739" y="195">
 			<name x="729" y="161">Attack</name>
-			<label kind="invariant" x="729" y="212">t &lt;=CIRCLE_SPEED</label>
+			<label kind="exponentialrate" x="729" y="229">CIRCLE_SPEED : 10</label>
 		</location>
 		<location id="id39" x="348" y="195">
 			<name x="338" y="161">Leave</name>
 		</location>
 		<location id="id40" x="-790" y="194">
 			<name x="-935" y="161">Move_bifurcation</name>
-			<label kind="invariant" x="-800" y="211">t&lt;=CIRCLE_SPEED</label>
+			<label kind="exponentialrate" x="-800" y="228">CIRCLE_SPEED : 10</label>
 		</location>
 		<location id="id41" x="-790" y="-323">
 			<urgent/>
 		</location>
 		<location id="id42" x="8" y="-323">
 			<name x="-2" y="-357">Move</name>
-			<label kind="invariant" x="17" y="-246">t&lt;=CIRCLE_SPEED</label>
+			<label kind="exponentialrate" x="-2" y="-289">CIRCLE_SPEED : 10</label>
 		</location>
 		<location id="id43" x="731" y="-578">
-			<label kind="invariant" x="721" y="-561">t&lt;=CIRCLE_SPEED</label>
+			<label kind="exponentialrate" x="721" y="-544">CIRCLE_SPEED : 10</label>
 		</location>
 		<init ref="id36"/>
 		<transition id="id44">
@@ -1140,6 +1140,227 @@ system S, C, M, T;</system>
 		<query>
 			<formula>E&lt;&gt; mainTowerHP &lt;= 0</formula>
 			<comment/>
+		</query>
+		<query>
+			<formula>simulate [&lt;=200; 10] { globalClock, mainTowerHP }</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-07-18 18:17:02 +0200">
+				<plot title="Simulations (10)" xaxis="time" yaxis="value">
+					<series title="globalClock" type="l" color="0xff0000" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff0909" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff1212" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff1b1b" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff2424" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff2d2d" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff3636" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff3e3e" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff4747" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="" type="l" color="0xff5050" encoding="csv">0.0,0.0
+200.0,200.0
+					</series>
+					<series title="mainTowerHP" type="l" color="0x00ffff" encoding="csv">0.0,100.0
+165.6153961873964,100.0
+165.63465245581463,96.0
+181.9161042977135,96.0
+181.9271820220424,92.0
+185.03349692636507,92.0
+185.06709703686826,88.0
+186.43393165577302,88.0
+186.43393165577302,84.0
+186.6638372331591,84.0
+186.6638372331591,82.0
+187.36730664935382,82.0
+187.36730664935382,78.0
+188.15804373086308,78.0
+188.15804373086308,74.0
+191.01884279180157,74.0
+191.01884279180157,70.0
+192.67069817878019,70.0
+192.69202440203605,66.0
+196.06978964460208,66.0
+196.11777485555214,62.0
+200.0,62.0
+					</series>
+					<series title="" type="l" color="0x09ffff" encoding="csv">0.0,100.0
+170.64965466289888,100.0
+170.69911161936747,96.0
+170.94631765811482,96.0
+170.94631765811482,92.0
+177.05807797553044,92.0
+177.08316653012557,88.0
+177.78081280442817,88.0
+177.78081280442817,84.0
+181.6386068861462,84.0
+181.6386068861462,80.0
+184.44462878009725,80.0
+184.4588647977846,76.0
+184.46240870134,72.0
+189.17825919014237,72.0
+189.22051097395064,68.0
+190.48721658229627,68.0
+190.48721658229627,64.0
+195.7014523997563,64.0
+195.7014523997563,60.0
+200.0,60.0
+					</series>
+					<series title="" type="l" color="0x12ffff" encoding="csv">0.0,100.0
+161.14468610999683,100.0
+161.14468610999683,96.0
+182.88837926171755,96.0
+182.9015225554911,92.0
+185.44547845782384,92.0
+185.44547845782384,88.0
+190.22084353496766,88.0
+190.25689073434478,84.0
+194.61550203656242,84.0
+194.65761121245762,80.0
+196.47752146523902,80.0
+196.47752146523902,76.0
+196.61929029104635,76.0
+196.65815801403946,72.0
+200.0,72.0
+					</series>
+					<series title="" type="l" color="0x1bffff" encoding="csv">0.0,100.0
+143.30950688835384,100.0
+143.30950688835384,96.0
+176.08010072926675,96.0
+176.08010072926675,92.0
+180.85009022814782,92.0
+180.8700640112733,88.0
+182.36440485153946,88.0
+182.36440485153946,84.0
+182.95685525732284,84.0
+183.0,80.0
+187.16242571164952,80.0
+187.1980100286513,76.0
+192.22249275883112,76.0
+192.22249275883112,72.0
+194.31450095824476,72.0
+194.31450095824476,68.0
+196.80295049700803,68.0
+196.8482436555946,64.0
+200.0,64.0
+					</series>
+					<series title="" type="l" color="0x24ffff" encoding="csv">0.0,100.0
+152.8061429072076,100.0
+152.8061429072076,96.0
+163.33013992773172,96.0
+163.33013992773172,92.0
+168.1531778022491,92.0
+168.1632346881291,88.0
+184.20467755160084,88.0
+184.21279095663567,84.0
+200.0,84.0
+					</series>
+					<series title="" type="l" color="0x2dffff" encoding="csv">0.0,100.0
+180.3150741101989,100.0
+180.35589403736913,96.0
+184.15623850235994,96.0
+184.15623850235994,92.0
+191.0341668999366,92.0
+191.06226377605216,88.0
+193.35947648166453,88.0
+193.35947648166453,84.0
+195.20501021578895,84.0
+195.20742536960898,80.0
+196.45779573912478,80.0
+196.45779573912478,76.0
+197.73260863650344,76.0
+197.73260863650344,72.0
+200.0,72.0
+					</series>
+					<series title="" type="l" color="0x36ffff" encoding="csv">0.0,100.0
+173.76669725708896,100.0
+173.78893434993404,96.0
+175.86526058507312,96.0
+175.86526058507312,92.0
+178.28602907368912,92.0
+178.33560322767045,88.0
+187.34874603557577,88.0
+187.36165781889414,84.0
+196.03891183148465,84.0
+196.0469495359836,80.0
+196.30408573193913,80.0
+196.30408573193913,76.0
+200.0,76.0
+					</series>
+					<series title="" type="l" color="0x3effff" encoding="csv">0.0,100.0
+153.84969184834154,100.0
+153.8833783675047,96.0
+172.68169052494173,96.0
+172.6872415943188,92.0
+172.98131523806873,92.0
+172.98131523806873,88.0
+180.80338147270137,88.0
+180.80338147270137,84.0
+184.74683857254593,84.0
+184.7643698738223,80.0
+185.58578204463686,80.0
+185.61712647593097,78.0
+195.54028511443397,78.0
+195.54028511443397,74.0
+198.24882186584398,74.0
+198.24882186584398,70.0
+200.0,70.0
+					</series>
+					<series title="" type="l" color="0x47ffff" encoding="csv">0.0,100.0
+167.47827961948454,100.0
+167.51735587805877,96.0
+171.0101204166371,96.0
+171.05882607274958,92.0
+171.91683563516696,92.0
+171.94253326436925,88.0
+184.73711698764944,88.0
+184.76372563916647,84.0
+185.17210004141913,84.0
+185.17210004141913,80.0
+187.6252336211247,80.0
+187.65941925698013,76.0
+190.33304668191286,76.0
+190.3349599502768,72.0
+190.58765532668102,72.0
+190.58765532668102,68.0
+192.62399375886466,68.0
+192.62399375886466,64.0
+200.0,64.0
+					</series>
+					<series title="" type="l" color="0x50ffff" encoding="csv">0.0,100.0
+168.05015349885338,100.0
+168.05015349885338,96.0
+181.08987265105168,96.0
+181.1200254223257,92.0
+187.05043904195438,92.0
+187.05043904195438,88.0
+200.0,88.0
+					</series>
+					<comment/>
+				</plot>
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;=200] ([] mainTowerHP == 100)</formula>
+			<comment/>
+			<result outcome="success" type="interval" value="≤ 0.0499441 (95% CI)" timestamp="2025-07-18 18:21:41 +0200">
+				<details>≤ 0.0499441 (95% CI)</details>
+			</result>
 		</query>
 	</queries>
 </nta>
