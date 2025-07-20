@@ -9,7 +9,6 @@ const int num_enemy = 6;
 const int LONGEST_PATH = 26;
 
 
-
 // === Game variables ===
 int enemy_cont = 0;
 
@@ -21,8 +20,6 @@ broadcast chan end_all;
 
 
 // === Turrets Parameters ===
-
-
 
 //Turrets Damage
 const int SNIPER_ATK = 8;
@@ -106,8 +103,9 @@ int START_Y = 0;
 int sqrs_pos[NUM_SQUARES][2];
 int circles_pos[NUM_CIRCLES][2];
 
-// Main Tower
-int mainTowerHP = 1000;
+// Main Tower ////////////////////////////////////////////////////////////////////////////////////////////////////
+int mainTowerHP = 10;
+//int mainTowerHP = 1000; //required for query II, III, IV verification
 
 // Enemy state arrays
 int circle_health[NUM_CIRCLES];
@@ -116,12 +114,10 @@ bool circle_alive[NUM_CIRCLES];
 int square_health[NUM_SQUARES];
 bool square_alive[NUM_SQUARES];
 
-//to save when the enemy instance has started
-int activation_order[NUM_SQUARES+NUM_CIRCLES];
+int activation_order[NUM_SQUARES+NUM_CIRCLES];    //Saves when the enemy instance has started
 int activation_counter = 0;
 // Clock for simulation
 clock globalClock=0;
-
 
 
 // Cell types
@@ -143,6 +139,7 @@ const int BIFURCATION1_Y = 4;
 const int BIFURCATION2_X = 10;
 const int BIFURCATION2_Y = 7;
 
+// Internal Map Representation
 int map[HEIGHT][WIDTH] = {
 //x= 0     1     2       3     4     5       6     7       8       9     10    11      12    13    14      15
     {PATH, 0,    0,      0,    0,    0,      0,    0,      0,      0,    0,    0,      0,    0,    0,      0},    // y = 0
@@ -154,19 +151,6 @@ int map[HEIGHT][WIDTH] = {
     {0,    0,    0,      0,    0,    0,      0,    PATH,   TURRET, 0,    PATH, 0,      0,    0,    TURRET, PATH}, // y = 6
     {0,    0,    0,      0,    0,    0,      0,    PATH,   PATH,   PATH, PATH, PATH,   PATH, PATH, PATH,   PATH}  // y = 7
 };
-
-/*int id_inMap[HEIGHT][WIDTH] = {
-//x= 0     1     2       3     4     5       6     7       8       9     10    11      12    13    14      15
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 0
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 1
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 2
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 3
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 4
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 5
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}, // y = 6
-    {-1, -1,    -1,      -1,    -1,    -1,      -1,    -1,      -1,      -1,    -1,    -1,      -1,    -1,    -1,      -1}  // y = 7
-};*/
-
 
 /**
 * applies damage to the enemy target, function used by turrets
@@ -185,7 +169,7 @@ void apply_damage(int target_id, int dmg) {
 </declaration>
 	<template>
 		<name>Map</name>
-		<declaration>bool end; //guard condition, if true the game must be ended, otherwise the game must continue
+		<declaration>bool end;     //guard condition, if true the game must be ended, otherwise the game must continue
 
 /**
 * Evaluates conditions to end the game, either all enemies were killed/left the map
@@ -245,24 +229,28 @@ bool check_end() {
 		<declaration>clock t;    //local clock
 int x = 0;    //enemy local x coordinate variable used to pass values
 int y = 0;    //enemy local y coordinate variable used to pass values
-int health;
-int prev_x = -1;
-int prev_y = -1;
-bool bifurcation;
-bool ReachMainTower = false;
+int health;    //local health value used for conditions on guards
+int prev_x = -1;    //saves the previous x coordinate before moving
+int prev_y = -1;    //saves the previous y coordinate before moving
+bool bifurcation;    //indicates whether or not we reached a bifurcation  
+bool ReachMainTower = false;    //indicates whether or not the main tower has been reached
 
 int next[2][2] = {
     {-1, -1},
     {-1, -1}
 }; // Array of possible next [x,y] positions
 
-
+/**
+* Updates the enemy position in the global state array
+*/
 void updatePositions(){
     sqrs_pos[id][0] = x;
     sqrs_pos[id][1] = y;
 }
 
-
+/**
+* Initializes the enemy position in the global state array
+*/
 void initializePositions(){
     sqrs_pos[id][0] = 0;
     sqrs_pos[id][1] = 0;
@@ -270,7 +258,13 @@ void initializePositions(){
 
 
 
-// Returns possible next positions from (x,y)
+/**
+* Returns possible next positions from (x,y)
+* @param x         Current x-coordinate
+* @param y         Current y-coordinate
+* @param prev_x    Previous x-coordinate
+* @param prev_y    Previous y-coordinate
+*/
 void getNextPositions(int x, int y, int prev_x, int prev_y) {
     
     next[0][0] = -1;
@@ -542,7 +536,7 @@ t := 0</label>
 		<declaration>clock t;    //local clock
 int x = 0;    //enemy local x coordinate variable used to pass values
 int y = 0;    //enemy local y coordinate variable used to pass values
-int health;    //local health variable used to pass values
+int health;    //local health value used for conditions on guards
 int prev_x = -1;    //saves the previous x coordinate before moving
 int prev_y = -1;    //saves the previous y coordinate before moving
 bool bifurcation;    //indicates whether or not we reached a bifurcation  
@@ -842,121 +836,12 @@ t := 0</label>
 	<template>
 		<name x="5" y="5">Turret</name>
 		<parameter>int &amp;range, int &amp;rof, int &amp;atk, int x, int y, int id</parameter>
-		<declaration>int[0, NUM_SQUARES+NUM_CIRCLES-1] target_id; //the number of targets
+		<declaration>int[0, NUM_SQUARES+NUM_CIRCLES-1] target_id;     //the number of targets
 
-bool present; //true if a suitable target was found, false otherwise
-bool shot; //true if the turret has fired and needs to reload
+bool present;     //true if a suitable target was found, false otherwise
+bool shot;     //true if the turret has fired and needs to reload
 
-clock turret_clock; //turret internal clock
-
-
-//local functions
-/*bool find_target(int range, int rof, int x, int y){
-    bool found= false;
-    int r;
-    int i;
-    int j;
-    int current_id = -1;
-    int current_time;
-    int best_id = -1;
-    int best_time;
-
-    r = 1;
-
-    while (r &lt;= range &amp;&amp; !found) {
-        // Left and right columns
-        for (j = y-r; j &lt;= y+r; j++){
-            if(x-r &gt;= 0 &amp;&amp; j&gt;=0 &amp;&amp; j &lt; WIDTH){
-                    i = x-r;
-                    //if the coordinate is a path
-                    if(map[i][j] == PATH){
-                        current_id = id_inMap[i][j];
-                        //if there is an enemy --&gt; different from -1
-                        //and if the enemy is alive (health of the enemy is greater than 0)
-                        if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
-                            current_time = activation_order[current_id];
-                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
-                                found = true;
-                                best_id = current_id;
-                                best_time = current_time;
-                        }
-                    }
-                    
-                }                        
-            }
-             
-            if(x+r &lt; WIDTH &amp;&amp; j&gt;=0 &amp;&amp; j &lt; HEIGHT){
-                i = x+r;
-                //if the coordinate is a path
-                if(map[i][j] == PATH){
-                    current_id = id_inMap[i][j];
-                    //if there is an enemy --&gt; different from -1
-                    //and if the enemy is alive (health of the enemy is greater than 0)
-                    if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
-                        current_time = activation_order[current_id];
-                        if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
-                            found = true;
-                            best_id = current_id;
-                            best_time = current_time;
-                        }
-                    }
-                    
-                } 
-            }
-                
-        }
-
-    // Top and bottom rows (excluding corners)
-    for(i = x-r+1; i &lt;= x+r-1; i++){
-			if(i &gt;= 0 &amp;&amp; i &lt; WIDTH){
-                //top
-				if( y-r &gt;=0){
-                    j = y-r;
-                    //if the coordinate is a path
-                    if(map[i][j] == PATH){
-                        current_id = id_inMap[i][j];
-                       //if there is an enemy --&gt; different from -1
-                       //and if the enemy is alive (health of the enemy is greater than 0)
-                       if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
-                            current_time = activation_order[current_id];
-                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
-                                found = true;
-                                best_id = current_id;
-                                best_time = current_time;
-                            }
-                        }
-                    
-                    }   
-                }
-                //bottom
-				if(y+r &lt; HEIGHT){
-                    j = y+r;
-                    //if the coordinate is a path
-                    if(map[i][j] == PATH){
-                        current_id = id_inMap[i][j];
-                        //if there is an enemy --&gt; different from -1
-                        //and if the enemy is alive (health of the enemy is greater than 0)
-                        if(current_id != -1 &amp;&amp; ((current_id &lt; NUM_SQUARES &amp;&amp; square_health[current_id] &gt; 0) || (current_id &gt;= NUM_SQUARES &amp;&amp; circle_health[current_id - NUM_SQUARES] &gt; 0))){
-                            current_time = activation_order[current_id];
-                            if(!found || current_time &lt; best_time || (current_time == best_time &amp;&amp; current_id &gt;= 0 &amp;&amp; current_id &lt;= (NUM_SQUARES-1) &amp;&amp; !(best_id &gt;= 0 &amp;&amp; best_id &lt;= (NUM_SQUARES-1)))){
-                                found = true;
-                                best_id = current_id;
-                                best_time = current_time;
-                            }
-                        }                   
-                    }
-                }					
-			}
-		}
-
-        if (found) {
-            output_id = best_id;
-        } else {
-            r++;
-        }
-    }
-    return found;
-}*/
+clock turret_clock;     //turret internal clock
 
 /**
 * Returns the absolute value
@@ -1005,8 +890,8 @@ bool find_target(int r, int rof, int x, int y){
         if(sqrs_pos[i][0] &gt; -1 &amp;&amp; sqrs_pos[i][1] &gt; -1 &amp;&amp; square_health[i] &gt;0){
             if (abs_val(sqrs_pos[i][0] - x) &lt;= r &amp;&amp; abs_val(sqrs_pos[i][1] - y) &lt;= r) {
                 // within Chebyshev range
-                
                 current_distance = chebyshev_distance(sqrs_pos[i][0], sqrs_pos[i][1], x, y);
+                //No enemy found so far, actual in range enemy saved as the one with minimum distance
                 if (!found){
                     found = true;
                     square = true;
@@ -1014,10 +899,12 @@ bool find_target(int r, int rof, int x, int y){
                     min_id = i;
                     min_time = activation_order[i];
                 } else {
+                    //found an enemy with a lower distance
                     if(current_distance &lt; min_distance){
                         min_distance = current_distance;
                         min_id = i;
                         min_time = activation_order[i];
+                    //two enemies are at the same distance, evaluate amount of time they've been alive for
                     } else if(current_distance == min_distance){
                         current_time = activation_order[i];
                         if(current_time &gt; min_time){
@@ -1036,17 +923,20 @@ bool find_target(int r, int rof, int x, int y){
             if (abs_val(circles_pos[j][0] - x) &lt;= r &amp;&amp; abs_val(circles_pos[j][1] - y) &lt;= r) {
                 // within Chebyshev range
                 current_distance = chebyshev_distance(circles_pos[j][0], circles_pos[j][1], x, y);
+                //No enemy found so far, actual in range enemy saved as the one with minimum distance
                 if (!found){
                     found = true;             
                     min_distance = current_distance;
                     min_id = j;
                     min_time = activation_order[j+NUM_SQUARES];
                 } else {
+                    //found an enemy with a lower distance
                     if(current_distance &lt; min_distance){
                         square = false;
                         min_distance = current_distance;
                         min_id = j;
                         min_time = activation_order[j+NUM_SQUARES];
+                    //two enemies are at the same distance, evaluate amount of time they've been alive for
                     } else if(current_distance == min_distance){
                         if(!square){
                             current_time = activation_order[j+NUM_SQUARES];
@@ -1061,7 +951,7 @@ bool find_target(int r, int rof, int x, int y){
             }
         }
     }
-
+    //save id of valid target
     if(found){
         target_id = (square) ? min_id : min_id + NUM_SQUARES;
     }
@@ -1132,24 +1022,31 @@ shot := true</label>
 shot := false</label>
 		</transition>
 	</template>
-	<system>// Place template instantiations here.
-M = Map();
+	<system>M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locations[id].y , id);
 S(const id_s id) = EnemySquare(id);
 C(const id_c id) = EnemyCircle(id);
-// List one or more processes to be composed into a system.
-system S, C, M;</system>
+
+//system S, C, M; //to be used to verify queries that DONT require turrets
+system S, C, M, T;</system>
 	<queries>
 		<query>
-			<formula>E&lt;&gt; M.GameOver</formula>
-			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-07-20 12:58:38 +0200">
+			<formula>A&lt;&gt; M.GameOver</formula>
+			<comment>Verifies property I:  The game never reaches a deadlock state.
+The query doesn't actually verifies the absence of deadlocks as a deadlock state will eventually be reached, the GameOver state (the system would go on forever otherwise).
+Because of this the query simply checks that ALL paths EVENTUALLY reach the GameOver state.</comment>
+			<option key="--diagnostic" value="0"/>
+			<result outcome="success" type="quality" timestamp="2025-07-20 17:32:27 +0200">
+				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
 			<formula>A&lt;&gt; C(0).ReachMainTower and S(0).ReachMainTower and C(1).ReachMainTower  and S(1).ReachMainTower and C(2).ReachMainTower  and S(2).ReachMainTower
 </formula>
-			<comment/>
+			<comment>Verifies property II:  All enemies can reach the Main Tower.
+Note: this property was verified by setting the health points of the main tower to 1000, enemies would simply destroy the tower otherwise,
+denying other enemies the possibility of reaching it and thus making the verification fail.
+The query simply checks that all paths eventually lead to a state where every enemy has the boolean "ReachMainTower" set to true. </comment>
 			<option key="--diagnostic" value="0"/>
 			<result outcome="success" type="quality" timestamp="2025-07-20 13:04:01 +0200">
 				<option key="--diagnostic" value="0"/>
@@ -1159,15 +1056,27 @@ system S, C, M;</system>
 			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*CIRCLE_SPEED+CIRCLE_SPAWN_INTERVAL and C(0).Attack) or 
 (globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C(1).Attack) or 
 (globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C(2).Attack)</formula>
-			<comment>Property III</comment>
-			<result outcome="success" type="quality" timestamp="2025-07-20 13:02:58 +0200">
+			<comment>Verifies property III:  Circles reach the Main Tower in no more than n · c time units, where n is
+the length of the longest path from the start of the Map to the Main Tower,
+and c is the speed of the Circles.
+Note: this property was verified by setting the health points of the main tower to 1000, enemies would simply destroy the tower otherwise,
+deniying other enemies the possibility of reaching it and thus making the verification fail.
+The query checks that all paths eventually lead to a state where at least one circle is in state Attack and the globalClock is less than 25*1+(id+1)*2.
+The condition adjusts for different spawning times, reason why we check that at least one enemy satisfies it (if one satisfies it then all other enemies also must satisfy it).</comment>
+			<result outcome="success" type="quality" timestamp="2025-07-20 16:49:43 +0200">
 			</result>
 		</query>
 		<query>
 			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S(0).Attack) or
 (globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S(1).Attack) or
 (globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S(2).Attack)</formula>
-			<comment>Property IV</comment>
+			<comment>Verifies property IV: Squares reach the Main Tower in no more than n · s time units, where n is
+the length of the longest path from the start of the Map to the Main Tower,
+and s is the speed of the Squares.
+Note: this property was verified by setting the health points of the main tower to 1000, enemies would simply destroy the tower otherwise,
+deniying other enemies the possibility of reaching it and thus making the verification fail.
+The query checks that all paths eventually lead to a state where at least one circle is in state Attack and the globalClock is less than 25*2+(id+1)*3.
+The condition adjusts for different spawning times, reason why we check that at least one enemy satisfies it (if one satisfies it then all other enemies also must satisfy it).</comment>
 			<option key="--diagnostic" value="2"/>
 			<result outcome="success" type="quality" timestamp="2025-07-20 13:03:15 +0200">
 				<option key="--diagnostic" value="2"/>
@@ -1180,13 +1089,38 @@ system S, C, M;</system>
     (C(0).Spawn or (C(0).next[0][0]!=-1 and C(0).next[0][1]!=-1)) and
     (C(1).Spawn or (C(1).next[0][0]!=-1 and C(1).next[0][1]!=-1)) and
     (C(2).Spawn or (C(2).next[0][0]!=-1 and C(2).next[0][1]!=-1))</formula>
-			<comment>Property V</comment>
+			<comment>Verifies property V: All enemies never leave the red path.
+Simply checks that for all paths it is always true that every enemy is either in the spawn state or the coordinates of their next position is different than (-1,-1) (invalid coordinates).</comment>
 			<result outcome="success" type="quality" timestamp="2025-07-20 13:03:29 +0200">
 			</result>
 		</query>
 		<query>
 			<formula>E&lt;&gt; mainTowerHP &lt;= 0</formula>
-			<comment/>
+			<comment>Used to verify whether or not the game was lost using configuration I.
+Simply checks if a path where the mainTowerHP&lt;=0 exists. If it does exist the game was lost, if not the game was won.</comment>
+			<result outcome="failure" type="quality" timestamp="2025-07-20 17:06:28 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; mainTowerHP &lt;= 0</formula>
+			<comment>Used to verify whether or not the game was lost using configuration II.
+Simply checks if a path where the mainTowerHP&lt;=0 exists. If it does exist the game was lost, if not the game was won.</comment>
+			<result outcome="success" type="quality" timestamp="2025-07-20 18:25:32 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>E&lt;&gt; mainTowerHP &lt;= 0</formula>
+			<comment>Used to verify whether or not the game was lost using configuration III.
+Simply checks if a path where the mainTowerHP&lt;=0 exists. If it does exist the game was lost, if not the game was won.</comment>
+			<result outcome="failure" type="quality" timestamp="2025-07-20 18:44:31 +0200">
+			</result>
+		</query>
+		<query>
+			<formula>A&lt;&gt; M.GameOver</formula>
+			<comment>Verifies property VII: The game, under the configuration described in point (VI), never reaches a
+deadlock state.</comment>
+			<result outcome="success" type="quality" timestamp="2025-07-20 17:08:33 +0200">
+			</result>
 		</query>
 	</queries>
 </nta>
