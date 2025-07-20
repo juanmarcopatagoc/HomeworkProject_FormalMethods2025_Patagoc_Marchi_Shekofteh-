@@ -107,7 +107,7 @@ int sqrs_pos[NUM_SQUARES][2];
 int circles_pos[NUM_CIRCLES][2];
 
 // Main Tower
-int mainTowerHP = 10;
+int mainTowerHP = 1000;
 
 // Enemy state arrays
 int circle_health[NUM_CIRCLES];
@@ -1138,47 +1138,50 @@ T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locat
 S(const id_s id) = EnemySquare(id);
 C(const id_c id) = EnemyCircle(id);
 // List one or more processes to be composed into a system.
-system S, C, M, T;</system>
+system S, C, M;</system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; M.GameOver</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2025-07-18 16:40:40 +0200">
+			<result outcome="success" type="quality" timestamp="2025-07-20 12:58:38 +0200">
 			</result>
 		</query>
 		<query>
-			<formula>A&lt;&gt; C0.ReachMainTower and S0.ReachMainTower and C1.ReachMainTower  and S1.ReachMainTower and C2.ReachMainTower  and S2.ReachMainTower
+			<formula>A&lt;&gt; C(0).ReachMainTower and S(0).ReachMainTower and C(1).ReachMainTower  and S(1).ReachMainTower and C(2).ReachMainTower  and S(2).ReachMainTower
 </formula>
 			<comment/>
 			<option key="--diagnostic" value="0"/>
-			<result outcome="success" type="quality" timestamp="2025-07-18 16:52:06 +0200">
+			<result outcome="success" type="quality" timestamp="2025-07-20 13:04:01 +0200">
 				<option key="--diagnostic" value="0"/>
 			</result>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*CIRCLE_SPEED+CIRCLE_SPAWN_INTERVAL and C0.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C1.Attack) or 
-(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C2.Attack)</formula>
+			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*CIRCLE_SPEED+CIRCLE_SPAWN_INTERVAL and C(0).Attack) or 
+(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+2*CIRCLE_SPAWN_INTERVAL) and C(1).Attack) or 
+(globalClock&lt;=(LONGEST_PATH*CIRCLE_SPEED+3*CIRCLE_SPAWN_INTERVAL) and C(2).Attack)</formula>
 			<comment>Property III</comment>
-			<result outcome="success" type="quality" timestamp="2025-07-18 17:02:00 +0200">
+			<result outcome="success" type="quality" timestamp="2025-07-20 13:02:58 +0200">
 			</result>
 		</query>
 		<query>
-			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S0.Attack) or
-(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S1.Attack) or
-(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S2.Attack)</formula>
+			<formula>A&lt;&gt; (globalClock&lt;=LONGEST_PATH*SQUARE_SPEED+SQUARE_SPAWN_INTERVAL and S(0).Attack) or
+(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+2*SQUARE_SPAWN_INTERVAL) and S(1).Attack) or
+(globalClock&lt;=(LONGEST_PATH*SQUARE_SPEED+3*SQUARE_SPAWN_INTERVAL) and S(2).Attack)</formula>
 			<comment>Property IV</comment>
 			<option key="--diagnostic" value="2"/>
+			<result outcome="success" type="quality" timestamp="2025-07-20 13:03:15 +0200">
+				<option key="--diagnostic" value="2"/>
+			</result>
 		</query>
 		<query>
-			<formula>A[] (S0.Spawn or (S0.next[0][0]!=-1 and S0.next[0][1]!=-1)) and
-    (S1.Spawn or (S1.next[0][0]!=-1 and S1.next[0][1]!=-1)) and
-    (S2.Spawn or (S2.next[0][0]!=-1 and S2.next[0][1]!=-1)) and
-    (C0.Spawn or (C0.next[0][0]!=-1 and C0.next[0][1]!=-1)) and
-    (C1.Spawn or (C1.next[0][0]!=-1 and C1.next[0][1]!=-1)) and
-    (C2.Spawn or (C2.next[0][0]!=-1 and C2.next[0][1]!=-1))</formula>
+			<formula>A[] (S(0).Spawn or (S(0).next[0][0]!=-1 and S(0).next[0][1]!=-1)) and
+    (S(1).Spawn or (S(1).next[0][0]!=-1 and S(1).next[0][1]!=-1)) and
+    (S(2).Spawn or (S(2).next[0][0]!=-1 and S(2).next[0][1]!=-1)) and
+    (C(0).Spawn or (C(0).next[0][0]!=-1 and C(0).next[0][1]!=-1)) and
+    (C(1).Spawn or (C(1).next[0][0]!=-1 and C(1).next[0][1]!=-1)) and
+    (C(2).Spawn or (C(2).next[0][0]!=-1 and C(2).next[0][1]!=-1))</formula>
 			<comment>Property V</comment>
-			<result outcome="success" type="quality" timestamp="2025-07-18 17:07:11 +0200">
+			<result outcome="success" type="quality" timestamp="2025-07-20 13:03:29 +0200">
 			</result>
 		</query>
 		<query>
