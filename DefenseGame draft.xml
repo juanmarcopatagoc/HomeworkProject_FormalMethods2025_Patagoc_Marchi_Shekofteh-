@@ -351,6 +351,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 			<label kind="testcodeEnter">getNextPositions(x, y);</label>
 		</location>
 		<location id="id14" x="-1487" y="-1181">
+			<name x="-1615" y="-1215">prepare_to_move</name>
 			<urgent/>
 		</location>
 		<location id="id15" x="-884" y="-1181">
@@ -358,7 +359,8 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 			<label kind="invariant" x="-875" y="-1156">t&lt;=SQUARE_SPEED</label>
 		</location>
 		<location id="id16" x="-221" y="-1436">
-			<label kind="invariant" x="-272" y="-1479">t&lt;=SQUARE_SPEED</label>
+			<name x="-204" y="-1470">prepare_to_attack</name>
+			<label kind="invariant" x="-204" y="-1445">t&lt;=SQUARE_SPEED</label>
 		</location>
 		<init ref="id9"/>
 		<transition id="id17">
@@ -653,6 +655,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 			<label kind="invariant" x="-800" y="211">t&lt;=CIRCLE_SPEED</label>
 		</location>
 		<location id="id40" x="-790" y="-323">
+			<name x="-918" y="-365">prepare_to_move</name>
 			<urgent/>
 		</location>
 		<location id="id41" x="8" y="-323">
@@ -660,6 +663,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 			<label kind="invariant" x="17" y="-246">t&lt;=CIRCLE_SPEED</label>
 		</location>
 		<location id="id42" x="731" y="-578">
+			<name x="721" y="-612">prepare_to_attack</name>
 			<label kind="invariant" x="721" y="-561">t&lt;=CIRCLE_SPEED</label>
 		</location>
 		<init ref="id35"/>
