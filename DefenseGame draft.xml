@@ -25,7 +25,7 @@ broadcast chan end_all;
 
 
 //Turrets Damage
-const int SNIPER_ATK = 20;
+const int SNIPER_ATK = 8;
 const int CANNON_ATK = 5;
 const int BASIC_ATK = 2;
 
@@ -46,7 +46,7 @@ typedef struct {
 } Position;
 
 // === Configuration I ===
-/*
+
 const int NUM_TURRETS = 7;
 typedef int[0, NUM_TURRETS-1] id_t;
 chan shoot[id_t];
@@ -54,7 +54,7 @@ int ranges[id_t] = {SNIPER_RANGE, BASIC_RANGE, CANNON_RANGE, CANNON_RANGE, SNIPE
 int rofs[id_t] = {SNIPER_ROF, BASIC_ROF, CANNON_ROF, CANNON_ROF, SNIPER_ROF, CANNON_ROF, CANNON_ROF};
 int atks[id_t] = {SNIPER_ATK, BASIC_ATK, CANNON_ATK, CANNON_ATK, SNIPER_ATK, CANNON_ATK, CANNON_ATK};
 const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {14,6}};
-*/
+/*
 // === Configuration II ===
 const int NUM_TURRETS = 4;
 typedef int[0, NUM_TURRETS-1] id_t;
@@ -63,7 +63,7 @@ int ranges[id_t] = {SNIPER_RANGE, CANNON_RANGE, CANNON_RANGE, CANNON_RANGE};
 int rofs[id_t] = {SNIPER_ROF, CANNON_ROF, CANNON_ROF, CANNON_ROF};
 int atks[id_t] = {SNIPER_ATK, CANNON_ATK, CANNON_ATK, CANNON_ATK};
 const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}};
-/*
+
 // === Configuration III ===
 const int NUM_TURRETS = 7;
 typedef int[0, NUM_TURRETS-1] id_t;
@@ -80,6 +80,8 @@ const Position locations[id_t] = {{2,3}, {5,5}, {8,2}, {8,6}, {11,5}, {14,2}, {1
 // Enemies
 const int NUM_CIRCLES = 3;
 const int NUM_SQUARES = 3;
+typedef int[0, NUM_CIRCLES-1] id_c;
+typedef int[0, NUM_SQUARES-1] id_s;
 
 //Enemies Speeds
 const int CIRCLE_SPEED = 1;
@@ -118,7 +120,7 @@ bool square_alive[NUM_SQUARES];
 int activation_order[NUM_SQUARES+NUM_CIRCLES];
 int activation_counter = 0;
 // Clock for simulation
-clock globalClock;
+clock globalClock=0;
 
 
 
@@ -166,6 +168,7 @@ int map[HEIGHT][WIDTH] = {
 };*/
 
 
+/**
 * applies damage to the enemy target, function used by turrets
 * @param target_id    The id number of the target
 * @param dmg          Turret damage that will be applied
@@ -497,6 +500,7 @@ t := 0</label>
 			<source ref="id9"/>
 			<target ref="id14"/>
 			<label kind="guard" x="-1844" y="-1164">t &gt;= SQUARE_SPAWN_INTERVAL * (id+1)</label>
+			<label kind="synchronisation" x="-1844" y="-977">movement!</label>
 			<label kind="assignment" x="-1844" y="-1139">t := 0, 
 initializePositions(),
 activation_order[id] := activation_counter,
@@ -631,7 +635,7 @@ void getNextPositions(int x, int y, int prev_x, int prev_y) {
 }</declaration>
 		<location id="id35" x="-1351" y="-323">
 			<name x="-1361" y="-357">Spawn</name>
-			<label kind="invariant" x="-1445" y="-306">t&lt;=SQUARE_SPAWN_INTERVAL*(id+1)</label>
+			<label kind="invariant" x="-1445" y="-306">t&lt;=CIRCLE_SPAWN_INTERVAL*(id+1)</label>
 		</location>
 		<location id="id36" x="8" y="194">
 			<name x="-2" y="160">decide</name>
@@ -797,6 +801,7 @@ t := 0</label>
 			<source ref="id35"/>
 			<target ref="id40"/>
 			<label kind="guard" x="-1190" y="-324">t &gt;= CIRCLE_SPAWN_INTERVAL * (id+1)</label>
+			<label kind="synchronisation" x="-1190" y="-136">movement!</label>
 			<label kind="assignment" x="-1190" y="-297">t := 0, 
 initializePositions(),
 activation_order[id + NUM_SQUARES] := activation_counter,
@@ -1060,78 +1065,76 @@ bool find_target(int r, int rof, int x, int y){
     return found;
 }
 </declaration>
-		<location id="id61" x="-3646" y="-1190">
-			<name x="-3663" y="-1224">idle</name>
+		<location id="id61" x="-3195" y="-2227">
+			<name x="-3212" y="-2261">idle</name>
 		</location>
-		<location id="id62" x="-3060" y="-1190">
-			<name x="-3102" y="-1224">ready_to_fire</name>
+		<location id="id62" x="-2609" y="-2227">
+			<name x="-2694" y="-2218">ready_to_fire</name>
 			<committed/>
 		</location>
-		<location id="id63" x="-2584" y="-1190">
-			<name x="-2610" y="-1224">reload</name>
-			<label kind="invariant" x="-2592" y="-1173">turret_clock &lt;= rof</label>
+		<location id="id63" x="-2133" y="-2227">
+			<name x="-2159" y="-2261">reload</name>
+			<label kind="invariant" x="-2141" y="-2210">turret_clock &lt;= rof</label>
 		</location>
-		<location id="id64" x="-3060" y="-1020">
-			<name x="-3070" y="-1054">End</name>
+		<location id="id64" x="-2609" y="-2057">
+			<name x="-2619" y="-2091">End</name>
 		</location>
 		<init ref="id61"/>
 		<transition id="id65">
 			<source ref="id61"/>
 			<target ref="id64"/>
-			<label kind="synchronisation" x="-3417" y="-1020">end_all?</label>
-			<nail x="-3646" y="-1020"/>
+			<label kind="synchronisation" x="-2966" y="-2057">end_all?</label>
+			<nail x="-3195" y="-2057"/>
 		</transition>
 		<transition id="id66">
 			<source ref="id63"/>
 			<target ref="id64"/>
-			<label kind="synchronisation" x="-2898" y="-1071">end_all?</label>
+			<label kind="synchronisation" x="-2447" y="-2108">end_all?</label>
 		</transition>
 		<transition id="id67">
 			<source ref="id62"/>
 			<target ref="id64"/>
-			<label kind="synchronisation" x="-3128" y="-1122">end_all?</label>
+			<label kind="synchronisation" x="-2677" y="-2159">end_all?</label>
 		</transition>
 		<transition id="id68">
 			<source ref="id63"/>
-			<target ref="id61"/>
-			<label kind="guard" x="-3230" y="-1334">turret_clock &gt;=rof</label>
-			<label kind="assignment" x="-3221" y="-1309">shot := false</label>
-			<nail x="-2584" y="-1309"/>
-			<nail x="-3646" y="-1309"/>
+			<target ref="id62"/>
+			<label kind="guard" x="-2465" y="-2414">turret_clock &gt;=rof</label>
+			<label kind="assignment" x="-2465" y="-2397">shot := false,
+present := find_target(range, rof, x, y)</label>
+			<nail x="-2133" y="-2346"/>
+			<nail x="-2609" y="-2346"/>
+			<nail x="-2609" y="-2244"/>
 		</transition>
 		<transition id="id69">
 			<source ref="id62"/>
 			<target ref="id61"/>
-			<label kind="guard" x="-3391" y="-1258">!present</label>
-			<nail x="-3357" y="-1240"/>
+			<label kind="guard" x="-2940" y="-2295">!present</label>
+			<nail x="-2906" y="-2277"/>
 		</transition>
 		<transition id="id70">
 			<source ref="id62"/>
 			<target ref="id63"/>
-			<label kind="guard" x="-2881" y="-1215">present</label>
-			<label kind="assignment" x="-2958" y="-1181">apply_damage(target_id, atk),
+			<label kind="guard" x="-2430" y="-2252">present</label>
+			<label kind="assignment" x="-2507" y="-2218">apply_damage(target_id, atk),
 turret_clock := 0,
 shot := true</label>
 		</transition>
 		<transition id="id71">
 			<source ref="id61"/>
 			<target ref="id62"/>
-			<label kind="synchronisation" x="-3604" y="-1147">turret_notify?</label>
-			<label kind="assignment" x="-3604" y="-1190">present = find_target(range, rof, x, y),
+			<label kind="synchronisation" x="-3153" y="-2184">turret_notify?</label>
+			<label kind="assignment" x="-3153" y="-2227">present = find_target(range, rof, x, y),
 shot := false</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
-C0 = EnemyCircle(0);
-C1 = EnemyCircle(1);
-C2 = EnemyCircle(2);
-S0 = EnemySquare(0);
-S1 = EnemySquare(1);
-S2 = EnemySquare(2);
 M = Map();
 T(const id_t id) = Turret(ranges[id], rofs[id], atks[id], locations[id].x, locations[id].y , id);
+S(const id_s id) = EnemySquare(id);
+C(const id_c id) = EnemyCircle(id);
 // List one or more processes to be composed into a system.
-system S0, S1, S2, C0, C1, C2, M, T;</system>
+system S, C, M, T;</system>
 	<queries>
 		<query>
 			<formula>E&lt;&gt; M.GameOver</formula>
