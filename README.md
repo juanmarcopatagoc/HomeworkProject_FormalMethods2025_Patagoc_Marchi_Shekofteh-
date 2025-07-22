@@ -1,1 +1,2 @@
 # HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-
+The purpose of this project was to show how we can create a formal representation of a simple problem, how to exploit it to formally verify its properties and how we can extract information on the problem using formal results. The problem in question is a Tower Defense Game, a strategy game in which the player aims to protect valuable assets from an enemy invasion by strategically setting up defences. 
