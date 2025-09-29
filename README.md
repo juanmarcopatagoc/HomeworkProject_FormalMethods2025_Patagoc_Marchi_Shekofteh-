@@ -14,7 +14,7 @@ The modeling tool used is [UPPAAL](https://uppaal.org/)
 The final grade given is **30/30L**
 
 ## Components of the Homework 
-- [HomeworkDocumentation](https://github.com/juanmarcopatagoc/HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-/blob/main/HomeworkDocumentation.pdf) is the documentation of the homework
+- [HomeworkDocumentation.pdf](https://github.com/juanmarcopatagoc/HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-/blob/main/HomeworkDocumentation.pdf) is the documentation of the homework
 - [DefenseGameVanilla.xml](https://github.com/juanmarcopatagoc/HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-/blob/main/DefenseGameVanilla.xml) contains the implementation and the queries of the vanilla configuration
 - [DefenseGameStochastic.xml](https://github.com/juanmarcopatagoc/HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-/blob/main/DefenseGameStochastic.xml) contains the implementation and the queries of the stochastic configuration
 - [FM_homework_presentation.pdf](https://github.com/juanmarcopatagoc/HomeworkProject_FormalMethods2025_Patagoc_Marchi_Shekofteh-/blob/main/FM_homework_presentation.pdf) is the final report and analysis of both implementations 
